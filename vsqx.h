@@ -49,10 +49,11 @@ class VVoiceInfo
 public:
 	int language;
 	int index;
-
 	std::string compId;
 	std::string voiceName;
 	VVoiceParameter voiceParameter;
+
+	const char* getLanguageString();
 };
 
 class VsqxInfo

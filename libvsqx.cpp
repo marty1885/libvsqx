@@ -98,6 +98,8 @@ int VsqxDoc::load()
 		}
 
 	}
+	XMLElement *mexerElement = rootElement->FirstChildElement("mixer");
+	//TODO:load mixer info here
 	return 1;
 }
 
@@ -163,6 +165,31 @@ void VsqxDoc::setError(const char* format,...)
 int VsqxDoc::getVoiceInfoNum()
 {
 	return voiceInfo.size();
+}
+////////////////////////////////////////////////
+//VVoiceInfo
+////////////////////////////////////////////////
+
+const char* VVoiceInfo::getLanguageString()
+{
+	//TODO: Add more id to language here
+	switch(language)
+	{
+	case 0:
+		return "JP";
+		break;
+
+	case 1:
+		return "EN";
+		break;
+
+	case 3:
+		return "CH";
+		break;
+	}
+	char* str = new char[4];
+	sprintf(str,"%d",language);
+	return str;
 }
 
 ////////////////////////////////////////////////
