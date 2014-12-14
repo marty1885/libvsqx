@@ -58,10 +58,32 @@ int VsqxDoc::load()
 	XMLDocument doc;
 	doc.LoadFile(path->c_str());
 	XMLElement *rootElement = doc.RootElement();
+
 	XMLElement *venderElement = rootElement->FirstChildElement("vender");
-	cout << venderElement->Value() << endl ;
+	if(venderElement == NULL)//vender not Found
+		info->setVender("Unknown");
+	else
+		info->setVender(venderElement->GetText());
+
+	XMLElement *versionElement = rootElement->FirstChildElement("version");
+	if(versionElement == NULL)//vender not Found
+		info->setVersion("0.0.0");//Unknown
+	else
+		info->setVersion(versionElement->GetText());
+
+	XMLElement *voiceTableElement = rootElement->FirstChildElement("vVoiceTable");
+	if(voiceElement != NULL)//voice data found
+	{
+		XMLElement element = voiceTableElement->FirstChildElement("vVoice");//just so we won't loadup something weird
+	}
 	return 1;
 }
+
+VsqxInfo* VsqxDoc::getInfo()
+{
+	return info;
+}
+
 
 int VsqxDoc::getError(char* buffer,int bufSize, bool keepMessage)
 {

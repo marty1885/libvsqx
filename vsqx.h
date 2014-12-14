@@ -32,6 +32,7 @@ public:
 	int load();
 
 	int getError(char* buffer,int bufSize, bool keepMessage = false);
+	VsqxInfo* getInfo();
 
 protected:
 	std::string *path;

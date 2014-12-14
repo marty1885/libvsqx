@@ -23,4 +23,8 @@ int main()
 		exit(0);
 	}
 	cout << "VSQx File successfuly loaded" << endl;
+
+	cout << endl << "VSQx info:" << endl
+		<< "Vender:\t\t" << vsqxFile.getInfo()->getVender() << endl
+		<< "version:\t" << vsqxFile.getInfo()->getVersion() << endl; 
 }
