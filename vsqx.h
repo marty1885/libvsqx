@@ -12,7 +12,7 @@ public:
 	int language;
 	int index;
 	std::string compId;
-	std::string name;
+	std::string voiceName;
 };
 
 class VsqxInfo

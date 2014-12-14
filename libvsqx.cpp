@@ -76,10 +76,18 @@ int VsqxDoc::load()
 	if(voiceTableElement != NULL)//voice data found
 	{
 		XMLElement *element = voiceTableElement->FirstChildElement("vVoice");//just so we won't loadup something weird
-		VVoiceInfo *voiceInfomation = new VVoiceInfo;
-		voiceInfo.push_back(voiceInfomation);
-		voiceInfomation->language = atoi(element->FirstChildElement("vBS")->GetText());
-		voiceInfomation->index =  atoi(element->FirstChildElement("vPC")->GetText());
+		while(element != NULL)
+		{
+			VVoiceInfo *voiceInfomation = new VVoiceInfo;
+			voiceInfo.push_back(voiceInfomation);
+			voiceInfomation->language = atoi(element->FirstChildElement("vBS")->GetText());
+			voiceInfomation->index =  atoi(element->FirstChildElement("vPC")->GetText());
+			voiceInfomation->voiceName = element->FirstChildElement("vVoiceName")->GetText();
+			voiceInfomation->compId = element->FirstChildElement("compID")->GetText();
+
+			element = element->NextSiblingElement("vVoice");
+		}
+
 	}
 	return 1;
 }

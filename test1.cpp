@@ -32,7 +32,9 @@ int main()
 	for(int i=0;i<vsqxFile.getVoiceInfoNum();i++)
 	{
 		cout << "Voice " << i << endl
-			<< "\t LanguageId:\t" << vsqxFile.getVoiceInfo()[i]->language << endl
-			<< "\t index:\t\t" << vsqxFile.getVoiceInfo()[i]->index << endl;
+			<< "\tLanguageId:\t" << vsqxFile.getVoiceInfo()[i]->language << endl
+			<< "\tindex:\t\t" << vsqxFile.getVoiceInfo()[i]->index << endl
+			<< "\tname\t\t" << vsqxFile.getVoiceInfo()[i]->voiceName << endl
+			<< "\tcompId:\t\t" << vsqxFile.getVoiceInfo()[i]->compId << endl;
 	}
 }
