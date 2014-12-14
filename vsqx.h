@@ -4,7 +4,16 @@
 #include <vector>
 
 #include <tinyxml2.h>
-using namespace tinyxml2;
+
+
+class VVoiceInfo
+{
+public:
+	int language;
+	int index;
+	std::string compId;
+	std::string name;
+};
 
 class VsqxInfo
 {
@@ -33,11 +42,14 @@ public:
 
 	int getError(char* buffer,int bufSize, bool keepMessage = false);
 	VsqxInfo* getInfo();
+	int getVoiceInfoNum();
+	VVoiceInfo** getVoiceInfo();
 
 protected:
 	std::string *path;
 	std::string errorString;
 	VsqxInfo *info;
+	std::vector<VVoiceInfo*> voiceInfo;
 
 	void setError(const char* format,...);
 	void init();

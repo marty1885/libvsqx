@@ -26,5 +26,13 @@ int main()
 
 	cout << endl << "VSQx info:" << endl
 		<< "Vender:\t\t" << vsqxFile.getInfo()->getVender() << endl
-		<< "version:\t" << vsqxFile.getInfo()->getVersion() << endl; 
+		<< "version:\t" << vsqxFile.getInfo()->getVersion() << endl;
+
+	cout << endl << "Total " << vsqxFile.getVoiceInfoNum() << " voice info loaded" << endl;
+	for(int i=0;i<vsqxFile.getVoiceInfoNum();i++)
+	{
+		cout << "Voice " << i << endl
+			<< "\t LanguageId:\t" << vsqxFile.getVoiceInfo()[i]->language << endl
+			<< "\t index:\t\t" << vsqxFile.getVoiceInfo()[i]->index << endl;
+	}
 }

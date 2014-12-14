@@ -1,5 +1,6 @@
 #include <vsqx.h>
 using namespace std;
+using namespace tinyxml2;
 
 #define CHECK_ROOT_ELEMENT	0
 #define CHECK_BEFORE_LOAD	0
@@ -74,7 +75,11 @@ int VsqxDoc::load()
 	XMLElement *voiceTableElement = rootElement->FirstChildElement("vVoiceTable");
 	if(voiceTableElement != NULL)//voice data found
 	{
-		XMLElement *element = voiceTableElement->FirstChildElement("vVoiceTable");//just so we won't loadup something weird
+		XMLElement *element = voiceTableElement->FirstChildElement("vVoice");//just so we won't loadup something weird
+		VVoiceInfo *voiceInfomation = new VVoiceInfo;
+		voiceInfo.push_back(voiceInfomation);
+		voiceInfomation->language = atoi(element->FirstChildElement("vBS")->GetText());
+		voiceInfomation->index =  atoi(element->FirstChildElement("vPC")->GetText());
 	}
 	return 1;
 }
@@ -82,6 +87,18 @@ int VsqxDoc::load()
 VsqxInfo* VsqxDoc::getInfo()
 {
 	return info;
+}
+
+VVoiceInfo** VsqxDoc::getVoiceInfo()
+{
+	static VVoiceInfo** ptr = NULL;
+	if(ptr != NULL)
+		delete [] ptr;
+	int size = voiceInfo.size();
+	ptr = new VVoiceInfo*[size];
+	for(int i=0;i<size;i++)
+		ptr[i] = voiceInfo[i];
+	return ptr;
 }
 
 
@@ -126,6 +143,11 @@ void VsqxDoc::setError(const char* format,...)
 	delete [] str;
 }
 
+int VsqxDoc::getVoiceInfoNum()
+{
+	return voiceInfo.size();
+}
+
 ////////////////////////////////////////////////
 //VsqxInfo
 ////////////////////////////////////////////////
@@ -160,4 +182,3 @@ const char* VsqxInfo::getVersion()
 {
 	return version->c_str();
 }
-
