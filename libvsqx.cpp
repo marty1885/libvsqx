@@ -87,6 +87,13 @@ int VsqxDoc::load()
 			voiceInfomation->voiceName = element->FirstChildElement("vVoiceName")->GetText();
 			voiceInfomation->compId = element->FirstChildElement("compID")->GetText();
 
+			XMLElement *voiceParam = element->FirstChildElement("vVoiceParam");
+			voiceInfomation->voiceParameter.bre = atoi(voiceParam->FirstChildElement("bre")->GetText());
+			voiceInfomation->voiceParameter.bri = atoi(voiceParam->FirstChildElement("bri")->GetText());
+			voiceInfomation->voiceParameter.cle = atoi(voiceParam->FirstChildElement("cle")->GetText());
+			voiceInfomation->voiceParameter.gen = atoi(voiceParam->FirstChildElement("gen")->GetText());
+			voiceInfomation->voiceParameter.ope = atoi(voiceParam->FirstChildElement("ope")->GetText());
+
 			element = element->NextSiblingElement("vVoice");
 		}
 
@@ -264,4 +271,45 @@ int VParameterList::remove(int startClock, int endClock)
 			startId = i-1;
 
 	value.erase(value.begin()+startId,value.begin()+endId);
+	return endId - startId + 1;
+}
+
+/////////////////////////////////////////////
+//VParameterMatrix
+/////////////////////////////////////////////
+int VParameterMatrix::addParameter(const char* name, int clock,int val)
+{
+	int size = parameterList.size();
+	int id = -1;
+	for(int i=0;i<size;i++)
+		if(strcmp(parameterList[i]->getName(),name)==0)
+		{
+			id = i;
+			break;
+		}
+	VParameterList *paraList = NULL;
+	if(id = -1)//parameterlist with given name not found
+	{
+		paraList = new VParameterList;
+		parameterList.push_back(paraList);
+	}
+	else
+		paraList = parameterList[id];
+	paraList->addParameter(clock,val);
+	return 1;
+}
+int VParameterMatrix::getParameter(const char* name, int clock)
+{
+	int size = parameterList.size();
+	int id = -1;
+	for(int i=0;i<size;i++)
+		if(strcmp(parameterList[i]->getName(),name)==0)
+		{
+			id = i;
+			break;
+		}
+	if(id == -1)//not found
+		return vsqxDefaultValue;
+
+	return parameterList[id]->getParameter(clock);
 }

@@ -35,6 +35,11 @@ int main()
 			<< "\tLanguageId:\t" << vsqxFile.getVoiceInfo()[i]->language << endl
 			<< "\tindex:\t\t" << vsqxFile.getVoiceInfo()[i]->index << endl
 			<< "\tname\t\t" << vsqxFile.getVoiceInfo()[i]->voiceName << endl
-			<< "\tcompId:\t\t" << vsqxFile.getVoiceInfo()[i]->compId << endl;
+			<< "\tcompId:\t\t" << vsqxFile.getVoiceInfo()[i]->compId << endl
+			<< "\tVoiceParameter:\t" << "BRI : " << vsqxFile.getVoiceInfo()[i]->voiceParameter.bri
+			<< " BRE : " << vsqxFile.getVoiceInfo()[i]->voiceParameter.bre
+			<< " CLE : " << vsqxFile.getVoiceInfo()[i]->voiceParameter.cle
+			<< " GEN : " << vsqxFile.getVoiceInfo()[i]->voiceParameter.gen 
+			<< " OPE : " << vsqxFile.getVoiceInfo()[i]->voiceParameter.ope << endl;
 	}
 }
