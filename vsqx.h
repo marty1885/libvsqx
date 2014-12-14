@@ -5,6 +5,25 @@
 
 #include <tinyxml2.h>
 
+class VParameter
+{
+public:
+	int value;
+	int clock;
+};
+
+class VParameterList
+{
+public:
+	void setName(std::string str);
+	const char* getName();
+	int addParameter(int clock,int val);
+	int getParameter(int clock);
+	int remove(int startClock, int endClock);
+
+	std::string name;
+	std::vector<VParameter*> value;
+};
 
 class VVoiceInfo
 {

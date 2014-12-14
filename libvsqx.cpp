@@ -5,6 +5,8 @@ using namespace tinyxml2;
 #define CHECK_ROOT_ELEMENT	0
 #define CHECK_BEFORE_LOAD	0
 
+static const int vsqxDefaultValue = 0;
+
 VsqxDoc::VsqxDoc()
 {
 	init();
@@ -52,7 +54,7 @@ int VsqxDoc::load()
 #if CHECK_BEFORE_LOAD == 1
 	if(isVsqx() == false)
 	{
-		setError("%s: Faild to load %s.\n",__func__,path->c_str());
+		setError("%s: Faild to load %s.\nNot a VSQx vailid file",__func__,path->c_str());
 		return 0;
 	}
 #endif
@@ -189,4 +191,77 @@ const char* VsqxInfo::getVender()
 const char* VsqxInfo::getVersion()
 {
 	return version->c_str();
+}
+
+///////////////////////////////////////////////
+//VParameterList
+///////////////////////////////////////////////
+void VParameterList::setName(string str)
+{
+	name = str;
+}
+
+const char* VParameterList::getName()
+{
+	return name.c_str();
+}
+
+int VParameterList::addParameter(int clock, int val)
+{
+	int size = value.size();
+	int id = 0;
+	for(int i=0;i < size;i++)//find the cloest value point
+	{
+		if(value[i]->clock <= clock)
+			id = i;
+		else
+			break;
+	}
+	if(value[id]->clock == clock)//we have a value point already
+		value[id]->value = val;
+	else
+	{
+		VParameter *para = new VParameter;
+		para->clock = clock;
+		para->value = val;
+		value.insert(value.begin()+id+1,para);
+	}
+	return 1;
+}
+
+int VParameterList::getParameter(int clock)
+{
+	int size = value.size();
+	if(size == 0)//No value
+		return vsqxDefaultValue;
+
+	int id = 0;
+	for(int i=0;i < size;i++)//find the cloest value point
+	{
+		if(value[i]->clock <= clock)
+			id = i;
+		else
+			break;
+	}
+	return value[id]->value;
+}
+
+int VParameterList::remove(int startClock, int endClock)
+{
+	int size = value.size();
+	int startId = 0;
+	int endId = 0;
+
+	if(startClock > endClock)//Do nothing
+		return 0;
+
+	for(int i=0;i < size;i++)
+		if(value[i]->clock >= startClock)
+			startId = i;
+
+	for(int i=startId;i < size;i++)
+		if(value[i]->clock >= endClock)
+			startId = i-1;
+
+	value.erase(value.begin()+startId,value.begin()+endId);
 }
