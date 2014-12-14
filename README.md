@@ -1,4 +1,4 @@
 libvsqx
 =======
 
-A spensource Vocaloid VSQX file loader.
+A spensource Vocaloid VSQX file loader wtitten in C++.

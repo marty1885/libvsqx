@@ -6,13 +6,26 @@ using namespace std;
 
 VsqxDoc::VsqxDoc()
 {
-	path = new string;
-	path->clear();
+	init();
+}
+
+VsqxDoc::VsqxDoc(string filePath)
+{
+	init();
+	setPath(filePath);
 }
 
 VsqxDoc::~VsqxDoc()
 {
 	delete path;
+}
+
+void VsqxDoc::init()
+{
+	path = new string;
+	path->clear();
+
+	info = new VsqxInfo;
 }
 
 void VsqxDoc::setPath(std::string filePath)
@@ -42,6 +55,11 @@ int VsqxDoc::load()
 		return 0;
 	}
 #endif
+	XMLDocument doc;
+	doc.LoadFile(path->c_str());
+	XMLElement *rootElement = doc.RootElement();
+	XMLElement *venderElement = rootElement->FirstChildElement("vender");
+	cout << venderElement->Value() << endl ;
 	return 1;
 }
 
@@ -85,3 +103,39 @@ void VsqxDoc::setError(const char* format,...)
 
 	delete [] str;
 }
+
+////////////////////////////////////////////////
+//VsqxInfo
+////////////////////////////////////////////////
+VsqxInfo::VsqxInfo()
+{
+	vender = new string("");
+	version = new string("");
+}
+
+
+VsqxInfo::~VsqxInfo()
+{
+	delete vender;
+	delete version;
+}
+
+void VsqxInfo::setVender(string str)
+{
+	*vender = str;
+}
+
+void VsqxInfo::setVersion(string str)
+{
+	*version = str;
+}
+
+const char* VsqxInfo::getVender()
+{
+	return vender->c_str();
+}
+const char* VsqxInfo::getVersion()
+{
+	return version->c_str();
+}
+
