@@ -72,9 +72,9 @@ int VsqxDoc::load()
 		info->setVersion(versionElement->GetText());
 
 	XMLElement *voiceTableElement = rootElement->FirstChildElement("vVoiceTable");
-	if(voiceElement != NULL)//voice data found
+	if(voiceTableElement != NULL)//voice data found
 	{
-		XMLElement element = voiceTableElement->FirstChildElement("vVoice");//just so we won't loadup something weird
+		XMLElement *element = voiceTableElement->FirstChildElement("vVoiceTable");//just so we won't loadup something weird
 	}
 	return 1;
 }
