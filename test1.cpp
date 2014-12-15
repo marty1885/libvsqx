@@ -45,7 +45,11 @@ int main()
 
 	cout << endl << "Master track Info:" << endl
 		<< "Name :\t\t" << vsqxFile.getMasterTrack()->name << endl
-		<< "Comment\t\t" << vsqxFile.getMasterTrack()->comment << endl
-		<< "Resolution:\t" << vsqxFile.getMasterTrack()->resolution << endl;
+		<< "Comment:\t" << vsqxFile.getMasterTrack()->comment << endl
+		<< "Resolution:\t" << vsqxFile.getMasterTrack()->resolution << endl
+		<< "preMeasure:\t" << vsqxFile.getMasterTrack()->preMeasure << endl;
+
+	cout << endl << "Counted " << vsqxFile.getMasterTrack()->getTimeSignatureNum() << " time signatures" << endl;
+
 	return 1;
 }

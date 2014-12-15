@@ -105,6 +105,20 @@ int VsqxDoc::load()
 	masterTrack->name = masterTrackElement->FirstChildElement("seqName")->GetText();
 	masterTrack->comment = masterTrackElement->FirstChildElement("comment")->GetText();
 	masterTrack->resolution = atoi(masterTrackElement->FirstChildElement("resolution")->GetText());
+	masterTrack->preMeasure = atoi(masterTrackElement->FirstChildElement("preMeasure")->GetText());
+
+	XMLElement *timeSignatureElement = masterTrackElement->FirstChildElement("timeSig");
+	while(timeSignatureElement != NULL)
+	{
+		int posMes = atoi(timeSignatureElement->FirstChildElement("posMes")->GetText());
+		int nume = atoi(timeSignatureElement->FirstChildElement("nume")->GetText());
+		int denomi = atoi(timeSignatureElement->FirstChildElement("denomi")->GetText());
+
+		masterTrack->addTimeSignature(posMes,nume,denomi);
+
+		timeSignatureElement = timeSignatureElement->NextSiblingElement("timeSig");
+	}
+	
 	return 1;
 }
 
@@ -206,7 +220,54 @@ const char* VVoiceInfo::getLanguageString()
 	sprintf(str,"%d",language);
 	return str;
 }
+////////////////////////////////////////////////
+//VMasterTrack
+////////////////////////////////////////////////
+int VMasterTrack::getTimeSignatureNum()
+{
+	return timeSignature.size();
+}
 
+int VMasterTrack::addTimeSignature(int posMes, int nume, int denomi)
+{
+	int size = timeSignature.size();
+	if(size == 0)//nothing in vector
+	{
+		VTimeSignature *timeSig = new VTimeSignature;
+		timeSig->posMes = posMes;
+		timeSig->nume = nume;
+		timeSig->denomi = denomi;
+
+		timeSignature.push_back(timeSig);
+	}
+	else
+	{
+		int id = 0;
+		for(int i=0;i<size;i++)
+		{
+			if(timeSignature[i]->posMes <= posMes)
+			{
+				id = i;
+				break;
+			}
+		}
+		if(timeSignature[id]->posMes == posMes)//a exact match
+		{
+			timeSignature[id]->nume = nume;
+			timeSignature[id]->denomi = denomi;
+		}
+		else
+		{
+			VTimeSignature *timeSig = new VTimeSignature;
+			timeSig->posMes = posMes;
+			timeSig->nume = nume;
+			timeSig->denomi = denomi;
+
+			timeSignature.insert(timeSignature.begin()+id+1,timeSig);
+		}
+	}
+	return 1;
+}
 ////////////////////////////////////////////////
 //VsqxInfo
 ////////////////////////////////////////////////

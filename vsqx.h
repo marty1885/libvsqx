@@ -57,6 +57,14 @@ public:
 	const char* getLanguageString();
 };
 
+class VTimeSignature
+{
+public:
+	int posMes;
+	int nume;
+	int denomi;
+};
+
 class VsqxInfo
 {
 public:
@@ -79,6 +87,11 @@ public:
 	std::string comment;
 	int resolution;
 	int preMeasure;
+
+	std::vector<VTimeSignature*> timeSignature;
+
+	int addTimeSignature(int posMes, int nume, int denomi);
+	int getTimeSignatureNum();
 };
 
 class VsqxDoc
