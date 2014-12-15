@@ -42,4 +42,10 @@ int main()
 			<< " GEN : " << vsqxFile.getVoiceInfo()[i]->voiceParameter.gen 
 			<< " OPE : " << vsqxFile.getVoiceInfo()[i]->voiceParameter.ope << endl;
 	}
+
+	cout << endl << "Master track Info:" << endl
+		<< "Name :\t\t" << vsqxFile.getMasterTrack()->name << endl
+		<< "Comment\t\t" << vsqxFile.getMasterTrack()->comment << endl
+		<< "Resolution:\t" << vsqxFile.getMasterTrack()->resolution << endl;
+	return 1;
 }

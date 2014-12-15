@@ -53,6 +53,7 @@ public:
 	std::string voiceName;
 	VVoiceParameter voiceParameter;
 
+	int getLanguageId();
 	const char* getLanguageString();
 };
 
@@ -66,8 +67,18 @@ public:
 	const char* getVender();
 	const char* getVersion();
 
+protected:
 	std::string *vender;
 	std::string *version;
+};
+
+class VMasterTrack
+{
+public:
+	std::string name;
+	std::string comment;
+	int resolution;
+	int preMeasure;
 };
 
 class VsqxDoc
@@ -85,12 +96,14 @@ public:
 	VsqxInfo* getInfo();
 	int getVoiceInfoNum();
 	VVoiceInfo** getVoiceInfo();
+	VMasterTrack* getMasterTrack();
 
 protected:
 	std::string *path;
 	std::string errorString;
 	VsqxInfo *info;
 	std::vector<VVoiceInfo*> voiceInfo;
+	VMasterTrack* masterTrack;
 
 	void setError(const char* format,...);
 	void init();

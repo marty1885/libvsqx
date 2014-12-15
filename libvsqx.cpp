@@ -21,6 +21,8 @@ VsqxDoc::VsqxDoc(string filePath)
 VsqxDoc::~VsqxDoc()
 {
 	delete path;
+	delete info;
+	delete masterTrack;
 }
 
 void VsqxDoc::init()
@@ -29,6 +31,7 @@ void VsqxDoc::init()
 	path->clear();
 
 	info = new VsqxInfo;
+	masterTrack = new VMasterTrack;
 }
 
 void VsqxDoc::setPath(std::string filePath)
@@ -98,8 +101,10 @@ int VsqxDoc::load()
 		}
 
 	}
-	XMLElement *mexerElement = rootElement->FirstChildElement("mixer");
-	//TODO:load mixer info here
+	XMLElement *masterTrackElement = rootElement->FirstChildElement("masterTrack");
+	masterTrack->name = masterTrackElement->FirstChildElement("seqName")->GetText();
+	masterTrack->comment = masterTrackElement->FirstChildElement("comment")->GetText();
+	masterTrack->resolution = atoi(masterTrackElement->FirstChildElement("resolution")->GetText());
 	return 1;
 }
 
@@ -166,9 +171,19 @@ int VsqxDoc::getVoiceInfoNum()
 {
 	return voiceInfo.size();
 }
+
+VMasterTrack* VsqxDoc::getMasterTrack()
+{
+	return masterTrack;
+}
 ////////////////////////////////////////////////
 //VVoiceInfo
 ////////////////////////////////////////////////
+int VVoiceInfo::getLanguageId()
+{
+	return language;
+}
+
 
 const char* VVoiceInfo::getLanguageString()
 {
