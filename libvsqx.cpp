@@ -245,9 +245,9 @@ int VMasterTrack::addTimeSignature(int posMes, int nume, int denomi)
 		int id = 0;
 		for(int i=0;i<size;i++)
 		{
-			if(timeSignature[i]->posMes <= posMes)
+			if(timeSignature[i]->posMes > posMes)
 			{
-				id = i;
+				id = i-1;
 				break;
 			}
 		}
