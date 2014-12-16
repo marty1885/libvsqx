@@ -118,30 +118,14 @@ int VsqxDoc::load()
 	mixer->masterUnit.vol = atoi(masterUnitElement->FirstChildElement("vol")->GetText());
 	for(int i=0;masterVstPluginElement != NULL;i++)
 	{
-		mixer->masterUnit.vstPlugin[i].id = masterVstPluginElement->FirstChildElement("vstPluginID")->GetText();
-		mixer->masterUnit.vstPlugin[i].name = masterVstPluginElement->FirstChildElement("vstPluginName")->GetText();
-		mixer->masterUnit.vstPlugin[i].sdkVersion = atoi(masterVstPluginElement->FirstChildElement("vstSDKVersion")->GetText());
-		mixer->masterUnit.vstPlugin[i].parameterNum = atoi(masterVstPluginElement->FirstChildElement("vstParamNum")->GetText());
-		mixer->masterUnit.vstPlugin[i].presetNum = atoi(masterVstPluginElement->FirstChildElement("vstPresetNo")->GetText());
-		mixer->masterUnit.vstPlugin[i].enable = atoi(masterVstPluginElement->FirstChildElement("enable")->GetText());
-		mixer->masterUnit.vstPlugin[i].bypass = atoi(masterVstPluginElement->FirstChildElement("bypass")->GetText());
-
-		int parameterNum = mixer->masterUnit.vstPlugin[i].parameterNum;
-		XMLElement *paramValElement = masterVstPluginElement->FirstChildElement("vstParamVal");
-		if(paramValElement != NULL)
-		{
-			XMLElement *valElement = paramValElement->FirstChildElement("val");
-			for(int i=0;i<parameterNum;i++)
-			{
-				mixer->masterUnit.vstPlugin[i].value.push_back(atoi(valElement->GetText()));
-				valElement = valElement->NextSiblingElement("val");
-			}
-		}
-
-
+		mixer->masterUnit.vstPlugin[i].loadVstInfo(masterVstPluginElement);
 		masterVstPluginElement = masterVstPluginElement->NextSiblingElement("vstPlugin");
 	}
-	//TODO: load vstPluginSR
+	masterVstPluginElement = masterUnitElement->FirstChildElement("vstPluginSR");
+	mixer->masterUnit.vstPlugin[2].loadVstInfo(masterVstPluginElement);
+
+	XMLElement *vsUnitElement = mixerElement->FirstChildElement("vsUnit");
+	//TODO: load vsUnit
 
 
 	//Load mster track
@@ -533,4 +517,29 @@ int VParameterMatrix::getParameter(const char* name, int clock)
 		return vsqxDefaultValue;
 
 	return parameterList[id]->getParameter(clock);
+}
+
+/////////////////////////////////////////////
+//VVstPlugin
+////////////////////////////////////////////
+int VVstPlugin::loadVstInfo(XMLElement* vstPluginElement)
+{
+	id = vstPluginElement->FirstChildElement("vstPluginID")->GetText();
+	name = vstPluginElement->FirstChildElement("vstPluginName")->GetText();
+	sdkVersion = atoi(vstPluginElement->FirstChildElement("vstSDKVersion")->GetText());
+	parameterNum = atoi(vstPluginElement->FirstChildElement("vstParamNum")->GetText());
+	presetNum = atoi(vstPluginElement->FirstChildElement("vstPresetNo")->GetText());
+	enable = atoi(vstPluginElement->FirstChildElement("enable")->GetText());
+	bypass = atoi(vstPluginElement->FirstChildElement("bypass")->GetText());
+
+	XMLElement *paramValElement = vstPluginElement->FirstChildElement("vstParamVal");
+	if(paramValElement != NULL)
+	{
+		XMLElement *valElement = paramValElement->FirstChildElement("val");
+		for(int i=0;i<parameterNum;i++)
+		{
+			value.push_back(atoi(valElement->GetText()));
+			valElement = valElement->NextSiblingElement("val");
+		}
+	}
 }

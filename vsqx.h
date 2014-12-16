@@ -45,7 +45,24 @@ public:
 	std::vector<int> value;
 	int enable;
 	int bypass;
+
+	int loadVstInfo(tinyxml2::XMLElement* vstPluginElement);
 };
+
+class VVsUnit
+{
+public:
+	int trackOn;
+	int inGain;
+	VVstPlugin *vstPlugin;
+	int sendLevel;
+	int sendEnable;
+	int mute;
+	int solo;
+	int pan;
+	int vol;
+
+}
 
 class VMasterUnit
 {
