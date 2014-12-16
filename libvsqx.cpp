@@ -23,6 +23,7 @@ VsqxDoc::~VsqxDoc()
 	delete path;
 	delete info;
 	delete masterTrack;
+	delete mixer;
 }
 
 void VsqxDoc::init()
@@ -32,6 +33,7 @@ void VsqxDoc::init()
 
 	info = new VsqxInfo;
 	masterTrack = new VMasterTrack;
+	mixer = new VMixer;
 }
 
 void VsqxDoc::setPath(std::string filePath)
@@ -55,6 +57,7 @@ bool VsqxDoc::isVsqx()
 int VsqxDoc::load()
 {
 #if CHECK_BEFORE_LOAD == 1
+	//Check if is a valid VSQx file
 	if(isVsqx() == false)
 	{
 		setError("%s: Faild to load %s.\nNot a VSQx vailid file",__func__,path->c_str());
@@ -65,6 +68,7 @@ int VsqxDoc::load()
 	doc.LoadFile(path->c_str());
 	XMLElement *rootElement = doc.RootElement();
 
+	//Load basic info of the file
 	XMLElement *venderElement = rootElement->FirstChildElement("vender");
 	if(venderElement == NULL)//vender not Found
 		info->setVender("Unknown");
@@ -77,6 +81,7 @@ int VsqxDoc::load()
 	else
 		info->setVersion(versionElement->GetText());
 
+	//Load voice(singer) info
 	XMLElement *voiceTableElement = rootElement->FirstChildElement("vVoiceTable");
 	if(voiceTableElement != NULL)//voice data found
 	{
@@ -101,6 +106,45 @@ int VsqxDoc::load()
 		}
 
 	}
+
+	//load mixer info
+	XMLElement *mixerElement = rootElement->FirstChildElement("mixer");
+	XMLElement *masterUnitElement = mixerElement->FirstChildElement("masterUnit");
+	XMLElement *masterVstPluginElement = masterUnitElement->FirstChildElement("vstPlugin");
+
+
+	mixer->masterUnit.outDev = atoi(masterUnitElement->FirstChildElement("outDev")->GetText());
+	mixer->masterUnit.retLevel = atoi(masterUnitElement->FirstChildElement("retLevel")->GetText());
+	mixer->masterUnit.vol = atoi(masterUnitElement->FirstChildElement("vol")->GetText());
+	for(int i=0;masterVstPluginElement != NULL;i++)
+	{
+		mixer->masterUnit.vstPlugin[i].id = masterVstPluginElement->FirstChildElement("vstPluginID")->GetText();
+		mixer->masterUnit.vstPlugin[i].name = masterVstPluginElement->FirstChildElement("vstPluginName")->GetText();
+		mixer->masterUnit.vstPlugin[i].sdkVersion = atoi(masterVstPluginElement->FirstChildElement("vstSDKVersion")->GetText());
+		mixer->masterUnit.vstPlugin[i].parameterNum = atoi(masterVstPluginElement->FirstChildElement("vstParamNum")->GetText());
+		mixer->masterUnit.vstPlugin[i].presetNum = atoi(masterVstPluginElement->FirstChildElement("vstPresetNo")->GetText());
+		mixer->masterUnit.vstPlugin[i].enable = atoi(masterVstPluginElement->FirstChildElement("enable")->GetText());
+		mixer->masterUnit.vstPlugin[i].bypass = atoi(masterVstPluginElement->FirstChildElement("bypass")->GetText());
+
+		int parameterNum = mixer->masterUnit.vstPlugin[i].parameterNum;
+		XMLElement *paramValElement = masterVstPluginElement->FirstChildElement("vstParamVal");
+		if(paramValElement != NULL)
+		{
+			XMLElement *valElement = paramValElement->FirstChildElement("val");
+			for(int i=0;i<parameterNum;i++)
+			{
+				mixer->masterUnit.vstPlugin[i].value.push_back(atoi(valElement->GetText()));
+				valElement = valElement->NextSiblingElement("val");
+			}
+		}
+
+
+		masterVstPluginElement = masterVstPluginElement->NextSiblingElement("vstPlugin");
+	}
+	//TODO: load vstPluginSR
+
+
+	//Load mster track
 	XMLElement *masterTrackElement = rootElement->FirstChildElement("masterTrack");
 	masterTrack->name = masterTrackElement->FirstChildElement("seqName")->GetText();
 	masterTrack->comment = masterTrackElement->FirstChildElement("comment")->GetText();
@@ -117,6 +161,17 @@ int VsqxDoc::load()
 		masterTrack->addTimeSignature(posMes,nume,denomi);
 
 		timeSignatureElement = timeSignatureElement->NextSiblingElement("timeSig");
+	}
+
+	XMLElement *tempoElement = masterTrackElement->FirstChildElement("tempo");
+	while(tempoElement != NULL)
+	{
+		int posTick = atoi(tempoElement->FirstChildElement("posTick")->GetText());
+		int bpm = atoi(tempoElement->FirstChildElement("bpm")->GetText());
+
+		masterTrack->addTempo(posTick,bpm);
+
+		tempoElement = tempoElement->NextSiblingElement("tempo");
 	}
 	
 	return 1;
@@ -190,6 +245,11 @@ VMasterTrack* VsqxDoc::getMasterTrack()
 {
 	return masterTrack;
 }
+
+VMixer* VsqxDoc::getMixer()
+{
+	return mixer;
+}
 ////////////////////////////////////////////////
 //VVoiceInfo
 ////////////////////////////////////////////////
@@ -226,6 +286,11 @@ const char* VVoiceInfo::getLanguageString()
 int VMasterTrack::getTimeSignatureNum()
 {
 	return timeSignature.size();
+}
+
+int VMasterTrack::getTempoNum()
+{
+	return tempo.size();
 }
 
 int VMasterTrack::addTimeSignature(int posMes, int nume, int denomi)
@@ -268,6 +333,59 @@ int VMasterTrack::addTimeSignature(int posMes, int nume, int denomi)
 	}
 	return 1;
 }
+
+////////////////////////////////////////////////
+//VMasterUnit
+////////////////////////////////////////////////
+
+VMasterUnit::VMasterUnit()
+{
+	vstPlugin = new VVstPlugin[3];
+}
+
+VMasterUnit::~VMasterUnit()
+{
+	delete [] vstPlugin;
+}
+
+int VMasterTrack::addTempo(int posTick, int bpm)
+{
+	int size = tempo.size();
+	if(size == 0)//nothing in vector
+	{
+		VTempo *tem = new VTempo;
+		tem->posTick = posTick;
+		tem->bpm = bpm;
+
+		tempo.push_back(tem);
+	}
+	else
+	{
+		int id = 0;
+		for(int i=0;i<size;i++)
+		{
+			if(tempo[i]->posTick > posTick)
+			{
+				id = i-1;
+				break;
+			}
+		}
+		if(tempo[id]->posTick == posTick)//a exact match
+		{
+			tempo[id]->bpm = bpm;
+		}
+		else
+		{
+			VTempo *tem = new VTempo;
+			tem->posTick = posTick;
+			tem->bpm = bpm;
+
+			tempo.insert(tempo.begin()+id+1,tem);
+		}
+	}
+	return 1;
+}
+
 ////////////////////////////////////////////////
 //VsqxInfo
 ////////////////////////////////////////////////

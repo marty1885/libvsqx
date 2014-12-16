@@ -34,6 +34,37 @@ public:
 	int getParameter(const char* name, int clock);
 };
 
+class VVstPlugin
+{
+public:
+	std::string id;
+	std::string name;
+	int sdkVersion;
+	int parameterNum;
+	int presetNum;
+	std::vector<int> value;
+	int enable;
+	int bypass;
+};
+
+class VMasterUnit
+{
+public:
+	VMasterUnit();
+	~VMasterUnit();
+
+	int outDev;
+	VVstPlugin *vstPlugin;
+	int retLevel;
+	int vol;
+};
+
+class VMixer
+{
+public:
+	VMasterUnit masterUnit;
+};
+
 class VVoiceParameter
 {
 public:
@@ -65,6 +96,13 @@ public:
 	int denomi;
 };
 
+class VTempo
+{
+public:
+	int posTick;
+	int bpm;
+};
+
 class VsqxInfo
 {
 public:
@@ -89,9 +127,12 @@ public:
 	int preMeasure;
 
 	std::vector<VTimeSignature*> timeSignature;
+	std::vector<VTempo*> tempo;
 
 	int addTimeSignature(int posMes, int nume, int denomi);
 	int getTimeSignatureNum();
+	int addTempo(int posTick, int bpm);
+	int getTempoNum();
 };
 
 class VsqxDoc
@@ -108,6 +149,7 @@ public:
 	int getError(char* buffer,int bufSize, bool keepMessage = false);
 	VsqxInfo* getInfo();
 	int getVoiceInfoNum();
+	VMixer* getMixer();
 	VVoiceInfo** getVoiceInfo();
 	VMasterTrack* getMasterTrack();
 
@@ -117,6 +159,7 @@ protected:
 	VsqxInfo *info;
 	std::vector<VVoiceInfo*> voiceInfo;
 	VMasterTrack* masterTrack;
+	VMixer* mixer;
 
 	void setError(const char* format,...);
 	void init();

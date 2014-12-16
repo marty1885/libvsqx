@@ -43,13 +43,30 @@ int main()
 			<< " OPE : " << vsqxFile.getVoiceInfo()[i]->voiceParameter.ope << endl;
 	}
 
+	cout << endl << "Mixer info:" << endl
+		<< "\tMaster unit :" << endl
+		<< "\t\tOutput Device : " << vsqxFile.getMixer()->masterUnit.outDev << endl;
+
+	for(int i=0;i<3;i++)
+	{
+		if(strcmp(vsqxFile.getMixer()->masterUnit.vstPlugin[i].id.c_str(),"    ") == 0)//no VST
+			cout << "\t\tNo VST in mster unit slot " << i << endl;
+		else
+		{
+			cout << "\t\tSlot " << i << endl
+				<<"\t\t\t Id :\t" << vsqxFile.getMixer()->masterUnit.vstPlugin[i].id.c_str() << endl
+				<<"\t\t\t name :\t" << vsqxFile.getMixer()->masterUnit.vstPlugin[i].name.c_str() << endl;
+		}
+	}
+
 	cout << endl << "Master track Info:" << endl
 		<< "Name :\t\t" << vsqxFile.getMasterTrack()->name << endl
 		<< "Comment:\t" << vsqxFile.getMasterTrack()->comment << endl
 		<< "Resolution:\t" << vsqxFile.getMasterTrack()->resolution << endl
 		<< "preMeasure:\t" << vsqxFile.getMasterTrack()->preMeasure << endl;
 
-	cout << endl << "Counted " << vsqxFile.getMasterTrack()->getTimeSignatureNum() << " time signatures" << endl;
+	cout << "Counted " << vsqxFile.getMasterTrack()->getTimeSignatureNum() << " time signatures and "
+		<< vsqxFile.getMasterTrack()->getTempoNum() << " tempo." << endl;
 
 	return 1;
 }
