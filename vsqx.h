@@ -62,7 +62,7 @@ public:
 	int pan;
 	int vol;
 
-}
+};
 
 class VMasterUnit
 {
