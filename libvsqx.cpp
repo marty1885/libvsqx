@@ -503,6 +503,7 @@ int VParameterMatrix::addParameter(const char* name, int clock,int val)
 	paraList->addParameter(clock,val);
 	return 1;
 }
+
 int VParameterMatrix::getParameter(const char* name, int clock)
 {
 	int size = parameterList.size();
@@ -542,4 +543,5 @@ int VVstPlugin::loadVstInfo(XMLElement* vstPluginElement)
 			valElement = valElement->NextSiblingElement("val");
 		}
 	}
+	return 1;
 }

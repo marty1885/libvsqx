@@ -148,6 +148,7 @@ public:
 
 	int addTimeSignature(int posMes, int nume, int denomi);
 	int getTimeSignatureNum();
+	
 	int addTempo(int posTick, int bpm);
 	int getTempoNum();
 };
