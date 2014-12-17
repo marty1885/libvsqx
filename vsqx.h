@@ -46,13 +46,14 @@ public:
 	int enable;
 	int bypass;
 
-	int loadVstInfo(tinyxml2::XMLElement* vstPluginElement);
+	int loadInfo(tinyxml2::XMLElement* vstPluginElement);
+	VVstPlugin();
 };
 
-class VVsUnit
+class VMixerTrack
 {
 public:
-	int trackOn;
+	int trackNo;
 	int inGain;
 	VVstPlugin *vstPlugin;
 	int sendLevel;
@@ -62,6 +63,7 @@ public:
 	int pan;
 	int vol;
 
+	int loadInfo(tinyxml2::XMLElement *vsUnitElement);
 };
 
 class VMasterUnit
@@ -80,6 +82,12 @@ class VMixer
 {
 public:
 	VMasterUnit masterUnit;
+	std::vector<VMixerTrack*> vsUnit;
+	VMixerTrack* seUnit;
+	VMixerTrack* karaokeUnit;
+
+	VMixer();
+	int getVsUnitNum();
 };
 
 class VVoiceParameter

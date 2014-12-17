@@ -118,14 +118,35 @@ int VsqxDoc::load()
 	mixer->masterUnit.vol = atoi(masterUnitElement->FirstChildElement("vol")->GetText());
 	for(int i=0;masterVstPluginElement != NULL;i++)
 	{
-		mixer->masterUnit.vstPlugin[i].loadVstInfo(masterVstPluginElement);
+		mixer->masterUnit.vstPlugin[i].loadInfo(masterVstPluginElement);
 		masterVstPluginElement = masterVstPluginElement->NextSiblingElement("vstPlugin");
 	}
 	masterVstPluginElement = masterUnitElement->FirstChildElement("vstPluginSR");
-	mixer->masterUnit.vstPlugin[2].loadVstInfo(masterVstPluginElement);
+	mixer->masterUnit.vstPlugin[2].loadInfo(masterVstPluginElement);
 
 	XMLElement *vsUnitElement = mixerElement->FirstChildElement("vsUnit");
-	//TODO: load vsUnit
+	//In vsqx, the number of vsUnit we have desides how much track we have.
+	//count howmuch track we have and prepare ram for it
+	while(vsUnitElement != NULL)
+	{
+		VMixerTrack* vsUnit = new VMixerTrack;
+		mixer->vsUnit.push_back(vsUnit);
+		vsUnitElement = vsUnitElement->NextSiblingElement("vsUnit");
+	}
+	vsUnitElement = mixerElement->FirstChildElement("vsUnit");
+	//load evey vsUnit and make it in order
+	while(vsUnitElement != NULL)
+	{
+		int id = atoi(vsUnitElement->FirstChildElement("vsTrackNo")->GetText());
+		mixer->vsUnit[id]->loadInfo(vsUnitElement);
+		vsUnitElement = vsUnitElement->NextSiblingElement("vsUnit");
+	}
+
+	XMLElement *seUnitElement = mixerElement->FirstChildElement("seUnit");
+	mixer->seUnit->loadInfo(seUnitElement);
+
+	XMLElement *karaokeUnitElement = mixerElement->FirstChildElement("karaokeUnit");
+	mixer->karaokeUnit->loadInfo(karaokeUnitElement);
 
 
 	//Load mster track
@@ -157,7 +178,7 @@ int VsqxDoc::load()
 
 		tempoElement = tempoElement->NextSiblingElement("tempo");
 	}
-	
+
 	return 1;
 }
 
@@ -523,7 +544,19 @@ int VParameterMatrix::getParameter(const char* name, int clock)
 /////////////////////////////////////////////
 //VVstPlugin
 ////////////////////////////////////////////
-int VVstPlugin::loadVstInfo(XMLElement* vstPluginElement)
+VVstPlugin::VVstPlugin()
+{
+	id = "    ";
+	name.clear();
+	sdkVersion = 0;
+	parameterNum = 0;
+	presetNum = 0;
+	value.clear();
+	enable = 0;
+	bypass = 0;
+
+}
+int VVstPlugin::loadInfo(XMLElement* vstPluginElement)
 {
 	id = vstPluginElement->FirstChildElement("vstPluginID")->GetText();
 	name = vstPluginElement->FirstChildElement("vstPluginName")->GetText();
@@ -544,4 +577,51 @@ int VVstPlugin::loadVstInfo(XMLElement* vstPluginElement)
 		}
 	}
 	return 1;
+}
+
+
+/////////////////////////////////////////////
+//VMixer
+////////////////////////////////////////////
+VMixer::VMixer()
+{
+	seUnit = new VMixerTrack;
+	karaokeUnit = new VMixerTrack;
+}
+
+int VMixer::getVsUnitNum()
+{
+	return vsUnit.size();
+}
+
+/////////////////////////////////////////////
+//VMixerTrack
+////////////////////////////////////////////
+int VMixerTrack::loadInfo(XMLElement *vsUnitElement)
+{
+
+	XMLElement *trackNoElement = vsUnitElement->FirstChildElement("vsTrackNo");
+	XMLElement *sendLevelElement = vsUnitElement->FirstChildElement("sendLevel");
+	XMLElement *sendEnableElement = vsUnitElement->FirstChildElement("sendEnable");
+	XMLElement *panElement = vsUnitElement->FirstChildElement("pan");
+
+	if(trackNoElement != NULL)
+		trackNo = atoi(trackNoElement->GetText());
+	inGain = atoi(vsUnitElement->FirstChildElement("inGain")->GetText());
+	if(sendLevelElement != NULL)
+		sendLevel = atoi(sendLevelElement->GetText());
+	if(sendEnableElement != NULL)
+		sendEnable = atoi(sendEnableElement->GetText());
+	mute = atoi(vsUnitElement->FirstChildElement("mute")->GetText());
+	solo = atoi(vsUnitElement->FirstChildElement("solo")->GetText());
+	if(panElement != NULL)
+		pan = atoi(panElement->GetText());
+	vol = atoi(vsUnitElement->FirstChildElement("vol")->GetText());
+
+	XMLElement *vstElement = vsUnitElement->FirstChildElement("vstPlugin");
+	vstPlugin = new VVstPlugin[2];
+	vstPlugin[0].loadInfo(vstElement);
+	vstElement = vstElement->NextSiblingElement("vstPlugin");
+	if(vstElement != NULL)//there is possiblity that we don't have the second vst element
+		vstPlugin[1].loadInfo(vstElement);
 }
