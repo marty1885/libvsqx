@@ -60,6 +60,7 @@ int main()
 	}
 	cout << "\tvsUnit :" << endl << "\t\tFound " << vsqxFile.getMixer()->getVsUnitNum() << " tracks" << endl;
 	cout << "\tseUnit :" << endl << "\t\tInput Gain : " << vsqxFile.getMixer()->seUnit->inGain << endl;
+	cout << "\tkaraokeUnit :" << endl << "\t\tInput Gain : " << vsqxFile.getMixer()->karaokeUnit->inGain << endl;
 
 	cout << endl << "Master track Info:" << endl
 		<< "Name :\t\t" << vsqxFile.getMasterTrack()->name << endl

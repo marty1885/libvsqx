@@ -601,22 +601,30 @@ int VMixerTrack::loadInfo(XMLElement *vsUnitElement)
 {
 
 	XMLElement *trackNoElement = vsUnitElement->FirstChildElement("vsTrackNo");
+	XMLElement *inGainElement = vsUnitElement->FirstChildElement("inGain");
 	XMLElement *sendLevelElement = vsUnitElement->FirstChildElement("sendLevel");
 	XMLElement *sendEnableElement = vsUnitElement->FirstChildElement("sendEnable");
 	XMLElement *panElement = vsUnitElement->FirstChildElement("pan");
+	XMLElement *soloElement = vsUnitElement->FirstChildElement("solo");
+	XMLElement *muteElement = vsUnitElement->FirstChildElement("mute");
+	XMLElement *volElement = vsUnitElement->FirstChildElement("vol");
 
 	if(trackNoElement != NULL)
 		trackNo = atoi(trackNoElement->GetText());
-	inGain = atoi(vsUnitElement->FirstChildElement("inGain")->GetText());
+	if(inGainElement != NULL)
+		inGain = atoi(inGainElement->GetText());
 	if(sendLevelElement != NULL)
 		sendLevel = atoi(sendLevelElement->GetText());
 	if(sendEnableElement != NULL)
 		sendEnable = atoi(sendEnableElement->GetText());
-	mute = atoi(vsUnitElement->FirstChildElement("mute")->GetText());
-	solo = atoi(vsUnitElement->FirstChildElement("solo")->GetText());
+	if(muteElement != NULL)
+		mute = atoi(muteElement->GetText());
+	if(soloElement != NULL)
+		solo = atoi(soloElement->GetText());
 	if(panElement != NULL)
 		pan = atoi(panElement->GetText());
-	vol = atoi(vsUnitElement->FirstChildElement("vol")->GetText());
+	if(volElement != NULL)
+		vol = atoi(volElement->GetText());
 
 	XMLElement *vstElement = vsUnitElement->FirstChildElement("vstPlugin");
 	vstPlugin = new VVstPlugin[2];

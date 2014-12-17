@@ -50,7 +50,7 @@ public:
 	VVstPlugin();
 };
 
-class VMixerTrack
+class VMixerUnit
 {
 public:
 	int trackNo;
