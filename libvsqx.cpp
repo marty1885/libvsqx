@@ -129,7 +129,7 @@ int VsqxDoc::load()
 	//count howmuch track we have and prepare ram for it
 	while(vsUnitElement != NULL)
 	{
-		VMixerTrack* vsUnit = new VMixerTrack;
+		VMixerUnit* vsUnit = new VMixerUnit;
 		mixer->vsUnit.push_back(vsUnit);
 		vsUnitElement = vsUnitElement->NextSiblingElement("vsUnit");
 	}
@@ -178,6 +178,24 @@ int VsqxDoc::load()
 
 		tempoElement = tempoElement->NextSiblingElement("tempo");
 	}
+
+	//load track
+	XMLElement *vsTrackElement =  rootElement->FirstChildElement("vsTrack");
+	while(vsTrackElement != NULL)
+	{
+		VTrack *vsTrack = new VTrack;
+		vsTrack->trackNo = atoi(vsTrackElement->FirstChildElement("vsTrackNo")->GetText());
+		vsTrack->name = vsTrackElement->FirstChildElement("trackName")->GetText();
+		vsTrack->comment = vsTrackElement->FirstChildElement("comment")->GetText();
+		XMLElement *musicalPartElement = vsTrackElement->FirstChildElement("musicalPart");
+		VMusicalPart *musicalPart = new VMusicalPart;
+		vsTrack->musicalPart.push_back(musicalPart);
+		musicalPart->loadInfo(musicalPartElement);
+
+		track.push_back(vsTrack);
+		vsTrackElement = vsTrackElement->NextSiblingElement("vsTrack");
+	}
+	//TODO: load track
 
 	return 1;
 }
@@ -546,7 +564,7 @@ int VParameterMatrix::getParameter(const char* name, int clock)
 ////////////////////////////////////////////
 VVstPlugin::VVstPlugin()
 {
-	id = "    ";
+	id = "    ";//No reason. Vocaloid default.
 	name.clear();
 	sdkVersion = 0;
 	parameterNum = 0;
@@ -585,8 +603,18 @@ int VVstPlugin::loadInfo(XMLElement* vstPluginElement)
 ////////////////////////////////////////////
 VMixer::VMixer()
 {
-	seUnit = new VMixerTrack;
-	karaokeUnit = new VMixerTrack;
+	seUnit = new VMixerUnit;
+	karaokeUnit = new VMixerUnit;
+}
+
+VMixer::~VMixer()
+{
+	int size = vsUnit.size();
+	for(int i=0;i<size;i++)
+		delete vsUnit[i];
+
+	delete seUnit;
+	delete karaokeUnit;
 }
 
 int VMixer::getVsUnitNum()
@@ -595,9 +623,19 @@ int VMixer::getVsUnitNum()
 }
 
 /////////////////////////////////////////////
-//VMixerTrack
+//VMixerUnit
 ////////////////////////////////////////////
-int VMixerTrack::loadInfo(XMLElement *vsUnitElement)
+VMixerUnit::VMixerUnit()
+{
+	vstPlugin = new VVstPlugin[2];
+}
+
+VMixerUnit::~VMixerUnit()
+{
+	delete [] vstPlugin;
+}
+
+int VMixerUnit::loadInfo(XMLElement *vsUnitElement)
 {
 
 	XMLElement *trackNoElement = vsUnitElement->FirstChildElement("vsTrackNo");
@@ -627,9 +665,21 @@ int VMixerTrack::loadInfo(XMLElement *vsUnitElement)
 		vol = atoi(volElement->GetText());
 
 	XMLElement *vstElement = vsUnitElement->FirstChildElement("vstPlugin");
-	vstPlugin = new VVstPlugin[2];
-	vstPlugin[0].loadInfo(vstElement);
-	vstElement = vstElement->NextSiblingElement("vstPlugin");
-	if(vstElement != NULL)//there is possiblity that we don't have the second vst element
-		vstPlugin[1].loadInfo(vstElement);
+	for(int i=0;vstElement != NULL;i++)
+	{
+		vstPlugin[0].loadInfo(vstElement);
+		vstElement = vstElement->NextSiblingElement("vstPlugin");
+	}
+
+}
+
+//////////////////////////////////////////////
+//VMusicalPart
+//////////////////////////////////////////////
+int VMusicalPart::loadInfo(XMLElement *musicalTrackElement)
+{
+	posTick = atoi(musicalTrackElement->FirstChildElement("posTick")->GetText());
+	playTime = atoi(musicalTrackElement->FirstChildElement("playTime")->GetText());
+	partName = musicalTrackElement->FirstChildElement("partName")->GetText();
+	comment = musicalTrackElement->FirstChildElement("comment")->GetText();
 }

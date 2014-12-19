@@ -64,6 +64,8 @@ public:
 	int vol;
 
 	int loadInfo(tinyxml2::XMLElement *vsUnitElement);
+	VMixerUnit();
+	~VMixerUnit();
 };
 
 class VMasterUnit
@@ -82,11 +84,12 @@ class VMixer
 {
 public:
 	VMasterUnit masterUnit;
-	std::vector<VMixerTrack*> vsUnit;
-	VMixerTrack* seUnit;
-	VMixerTrack* karaokeUnit;
+	std::vector<VMixerUnit*> vsUnit;
+	VMixerUnit* seUnit;
+	VMixerUnit* karaokeUnit;
 
 	VMixer();
+	~VMixer();
 	int getVsUnitNum();
 };
 
@@ -143,6 +146,39 @@ protected:
 	std::string *version;
 };
 
+class VStylePlugin
+{
+public:
+	VStylePlugin();
+	std::syting stylePluginID;
+	std::string stylePluginName;
+	std::string version;
+};
+
+class VMusicalPart
+{
+public:
+	int posTick;
+	int playTime;
+	std::string partName;
+	std::string comment;
+
+	int loadInfo(tinyxml2::XMLElement *musicalTrackElement);
+};
+
+class VTrack
+{
+public:
+	int trackNo;
+	std::string name;
+	std::string comment;
+	std::vector<VMusicalPart*> musicalPart;
+
+	int loadInfo(tinyxml2::XMLElement trackElement);
+};
+
+
+
 class VMasterTrack
 {
 public:
@@ -186,6 +222,7 @@ protected:
 	std::vector<VVoiceInfo*> voiceInfo;
 	VMasterTrack* masterTrack;
 	VMixer* mixer;
+	std::vector<VTrack*> track;
 
 	void setError(const char* format,...);
 	void init();

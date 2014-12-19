@@ -58,7 +58,7 @@ int main()
 				<<"\t\t\t name :\t" << vsqxFile.getMixer()->masterUnit.vstPlugin[i].name.c_str() << endl;
 		}
 	}
-	cout << "\tvsUnit :" << endl << "\t\tFound " << vsqxFile.getMixer()->getVsUnitNum() << " tracks" << endl;
+	cout << "\tvsUnit(vocal unit) :" << endl << "\t\tFound " << vsqxFile.getMixer()->getVsUnitNum() << " tracks" << endl;
 	cout << "\tseUnit :" << endl << "\t\tInput Gain : " << vsqxFile.getMixer()->seUnit->inGain << endl;
 	cout << "\tkaraokeUnit :" << endl << "\t\tInput Gain : " << vsqxFile.getMixer()->karaokeUnit->inGain << endl;
 
