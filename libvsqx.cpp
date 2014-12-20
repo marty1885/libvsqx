@@ -67,6 +67,11 @@ int VsqxDoc::load()
 	XMLDocument doc;
 	doc.LoadFile(path->c_str());
 	XMLElement *rootElement = doc.RootElement();
+	if(rootElement == NULL)
+	{
+		setError("Error: Unable to load VSQx: %s",path->c_str());
+		return 0;
+	}
 
 	//Load basic info of the file
 	XMLElement *venderElement = rootElement->FirstChildElement("vender");
@@ -122,7 +127,8 @@ int VsqxDoc::load()
 		masterVstPluginElement = masterVstPluginElement->NextSiblingElement("vstPlugin");
 	}
 	masterVstPluginElement = masterUnitElement->FirstChildElement("vstPluginSR");
-	mixer->masterUnit.vstPlugin[2].loadInfo(masterVstPluginElement);
+	if(masterVstPluginElement != NULL)//we might not have this
+		mixer->masterUnit.vstPlugin[2].loadInfo(masterVstPluginElement);
 
 	XMLElement *vsUnitElement = mixerElement->FirstChildElement("vsUnit");
 	//In vsqx, the number of vsUnit we have desides how much track we have.
@@ -289,9 +295,7 @@ VTrack** VsqxDoc::getTrack()
 	int size = track.size();
 	ptr = new VTrack*[size];
 	for(int i=0;i<size;i++)
-	{
 		ptr[i] = track[i];
-	}
 	return ptr;
 }
 ////////////////////////////////////////////////
@@ -320,7 +324,10 @@ const char* VVoiceInfo::getLanguageString()
 		return "CH";
 		break;
 	}
-	char* str = new char[4];
+	static char* str = NULL;
+	if(str != NULL)
+		delete [] str;
+	str = new char[4];
 	sprintf(str,"%d",language);
 	return str;
 }
@@ -721,6 +728,7 @@ int VMusicalPart::loadInfo(XMLElement *musicalTrackElement)
 		note.push_back(notePtr);
 		noteElement = noteElement->NextSiblingElement("note");
 	}
+	//TODO: load parameters
 	return 1;
 }
 
@@ -791,6 +799,20 @@ int VNote::loadInfo(XMLElement *noteElement)
 		noteStyle.loadInfo(noteStyleElement);
 
 	//TODO:Load vibro data
-	
 	return 1;
+}
+
+const char* VNote::getNoteName()
+{
+	const char noteName[][5]={"C","C#","D","Eb","E","F","F#","G","G#","A","Bb","B"};
+	int index = noteNum % 12;
+	int level = noteNum/12 - 2;
+	static char *str = NULL;
+
+	if(str != NULL)
+		delete [] str;
+	str = new char [10];
+	sprintf(str,"%s%d",noteName[index],level);
+
+	return (const char*)str;
 }

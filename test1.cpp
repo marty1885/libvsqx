@@ -12,7 +12,10 @@ int main()
 	cout << "libVsqx test1." << endl;
 
 	if(vsqxFile.isVsqx() == false)
+	{
 		cout << "Error :" << path << " is NOT a vsqx file" << endl;
+		exit(0);
+	}
 	cout << path << " is a vsqx file" << endl;
 
 	if(vsqxFile.load() == 0)//fail

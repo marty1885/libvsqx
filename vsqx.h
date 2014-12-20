@@ -177,8 +177,6 @@ class VNoteStyle : public VPartStyle
 class VNote
 {
 public:
-	int loadInfo(tinyxml2::XMLElement *noteElement);
-
 	int posTick;
 	int durTick;
 	int noteNum;
@@ -186,6 +184,9 @@ public:
 	std::string lyric;
 	std::string phnms;
 	VNoteStyle noteStyle;
+
+	int loadInfo(tinyxml2::XMLElement *noteElement);
+	const char* getNoteName();
 };
 
 class VMusicalPart
