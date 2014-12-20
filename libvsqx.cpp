@@ -689,7 +689,7 @@ int VMixerUnit::loadInfo(XMLElement *vsUnitElement)
 		vstPlugin[0].loadInfo(vstElement);
 		vstElement = vstElement->NextSiblingElement("vstPlugin");
 	}
-
+	return 1;
 }
 
 //////////////////////////////////////////////
@@ -710,6 +710,7 @@ int VMusicalPart::loadInfo(XMLElement *musicalTrackElement)
 	XMLElement *singerElement = musicalTrackElement->FirstChildElement("singer");
 	singer.index = atoi(singerElement->FirstChildElement("vPC")->GetText());
 	singer.language = atoi(singerElement->FirstChildElement("vBS")->GetText());
+	return 1;
 }
 //////////////////////////////////////////////
 //VStylePlugin
@@ -756,4 +757,23 @@ int VPartStyle::loadInfo(XMLElement *partStyleElement)
 
 		element = element->NextSiblingElement("attr");
 	}
+}
+
+//////////////////////////////////////////////////
+//VNote
+//////////////////////////////////////////////////
+
+int VNote::loadInfo(XMLElement *noteElement)
+{
+	posTick = atoi(noteElement->FirstChildElement("posTick")->GetText());
+	durTick = atoi(noteElement->FirstChildElement("durTick")->GetText());
+	noteNum = atoi(noteElement->FirstChildElement("noteNum")->GetText());
+	velocity = atoi(noteElement->FirstChildElement("velocity")->GetText());
+	lyric = noteElement->FirstChildElement("lyric")->GetText();
+	phnms =  noteElement->FirstChildElement("phnms")->GetText();
+	XMLElement *noteStyleElement = noteElement->FirstChildElement("noteStyle");
+	if(noteStyleElement != NULL)
+		noteStyle.loadInfo(noteStyleElement);
+	
+	return 1;
 }

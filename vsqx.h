@@ -202,6 +202,8 @@ class VNoteStyle : public VPartStyle
 class VNote
 {
 public:
+	int loadInfo(tinyxml2::XMLElement *noteElement);
+	
 	int posTick;
 	int durTick;
 	int noteNum;
