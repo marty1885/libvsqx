@@ -1,5 +1,6 @@
 libvsqx
 =======
 
-A opensource Vocaloid VSQX file loader wtitten in C++.
-You can find samplecode in this project. Don'd be worry.
+WARRNING: STILL IN VERY EARLY DEVELOPMENT STAGE. DO NOT EXPECI IT CAN DO MUCH NOW
+
+A opensource Vocaloid 3 VSQX file loader wtitten in C++/tinyxml2.
