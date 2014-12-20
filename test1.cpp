@@ -75,5 +75,7 @@ int main()
 	for(int i=0;i<trackNum;i++)
 		cout << "\tThere is " << vsqxFile.getTrack()[0]->musicalPart.size() << " musical Parts in track " << i << endl;
 
+	VParameterList paralist;
+	paralist.addParameter(0,64);
 	return 1;
 }

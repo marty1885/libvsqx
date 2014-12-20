@@ -1,6 +1,5 @@
 #include <iostream>
 #include <string.h>
-#include <stdint.h>
 #include <vector>
 
 #include <tinyxml2.h>
@@ -134,7 +133,7 @@ public:
 class VPartStyle
 {
 public:
-	int loadInfo(tinyxml2::XMLElement *partStyleElement);
+	virtual int loadInfo(tinyxml2::XMLElement *partStyleElement);
 
 	int accent;
 	int bendDep;
@@ -196,7 +195,21 @@ public:
 	int loadInfo(tinyxml2::XMLElement trackElement);
 };
 
+class VNoteStyle : public VPartStyle
+{
+};
 
+class VNote
+{
+public:
+	int posTick;
+	int durTick;
+	int noteNum;
+	int velocity;
+	std::string lyric;
+	std::string phnms;
+	VNoteStyle noteStyle;
+};
 
 class VMasterTrack
 {

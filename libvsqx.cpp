@@ -480,12 +480,12 @@ int VParameterList::addParameter(int clock, int val)
 {
 	int size = value.size();
 	int id = 0;
-	for(int i=0;i < size;i++)//find the cloest value point
+	if(value.size() == 0)
 	{
-		if(value[i]->clock <= clock)
-			id = i;
-		else
-			break;
+		VParameter *para = new VParameter;
+		para->clock = clock;
+		para->value = val;
+		value.push_back(para);
 	}
 	if(value[id]->clock == clock)//we have a value point already
 		value[id]->value = val;
