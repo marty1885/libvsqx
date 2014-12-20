@@ -215,6 +215,25 @@ public:
 	int loadInfo(tinyxml2::XMLElement trackElement);
 };
 
+class VWavPart
+{
+public:
+	int posTick;
+	int playTime;
+	std::string partName;
+	std::string comment;
+	int sampleRate;
+	int sampleReso;
+	int channels;
+	std::string filePath;
+};
+
+class VWavTrack
+{
+public:
+	VWavPart wavPart;
+};
+
 class VMasterTrack
 {
 public:
