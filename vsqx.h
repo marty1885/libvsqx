@@ -150,7 +150,9 @@ class VStylePlugin
 {
 public:
 	VStylePlugin();
-	std::syting stylePluginID;
+	int loadInfo(tinyxml2::XMLElement *stylePluginElement);
+	
+	std::string stylePluginId;
 	std::string stylePluginName;
 	std::string version;
 };
@@ -162,6 +164,7 @@ public:
 	int playTime;
 	std::string partName;
 	std::string comment;
+	VStylePlugin stylePlugin;
 
 	int loadInfo(tinyxml2::XMLElement *musicalTrackElement);
 };

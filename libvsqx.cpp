@@ -675,11 +675,30 @@ int VMixerUnit::loadInfo(XMLElement *vsUnitElement)
 
 //////////////////////////////////////////////
 //VMusicalPart
-//////////////////////////////////////////////
+/////////////////bo/////////////////////////////
 int VMusicalPart::loadInfo(XMLElement *musicalTrackElement)
 {
 	posTick = atoi(musicalTrackElement->FirstChildElement("posTick")->GetText());
 	playTime = atoi(musicalTrackElement->FirstChildElement("playTime")->GetText());
 	partName = musicalTrackElement->FirstChildElement("partName")->GetText();
 	comment = musicalTrackElement->FirstChildElement("comment")->GetText();
+	
+	stylePlugin.loadInfo(musicalTrackElement->FirstChildElement("stylePlugin"));
+}
+//////////////////////////////////////////////
+//VStylePlugin
+//////////////////////////////////////////////
+VStylePlugin::VStylePlugin()
+{
+	//some vocaloid defult
+	stylePluginId = "ACA9C502-A04B-42b5-B2EB-5CEA36D16FCE";
+	stylePluginName = "VOCALOID2 Compatible Style";
+	version = "3.0.0.1";
+}
+
+int VStylePlugin::loadInfo(XMLElement *stylePluginElement)
+{
+	stylePluginId = stylePluginElement->FirstChildElement("stylePluginID")->GetText();
+	stylePluginName = stylePluginElement->FirstChildElement("stylePluginName")->GetText();
+	version = stylePluginElement->FirstChildElement("version")->GetText();
 }
