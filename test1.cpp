@@ -76,7 +76,7 @@ int main()
 	for(int i=0;i<trackNum;i++)
 	{
 		int size = vsqxFile.getTrack()[i]->musicalPart.size();
-		cout << "\tThere is " << size << " musical Parts in track " << i << endl;
+		cout << "\tThere is " << size << " musical parts in track " << i << endl;
 		for(int w=0;w < size;w++)
 			cout << "\t\tWe have " << vsqxFile.getTrack()[i]->musicalPart[w]->note.size()
 				<< " notes in track " << i << " part " << w << endl;

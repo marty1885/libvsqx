@@ -192,7 +192,7 @@ int VsqxDoc::load()
 			VMusicalPart *musicalPart = new VMusicalPart;
 			vsTrack->musicalPart.push_back(musicalPart);
 			musicalPart->loadInfo(musicalPartElement);
-		}
+			}
 
 		track.push_back(vsTrack);
 		vsTrackElement = vsTrackElement->NextSiblingElement("vsTrack");
@@ -740,6 +740,8 @@ int VStylePlugin::loadInfo(XMLElement *stylePluginElement)
 	stylePluginId = stylePluginElement->FirstChildElement("stylePluginID")->GetText();
 	stylePluginName = stylePluginElement->FirstChildElement("stylePluginName")->GetText();
 	version = stylePluginElement->FirstChildElement("version")->GetText();
+
+	return 1;
 }
 
 ////////////////////////////////////////////////
