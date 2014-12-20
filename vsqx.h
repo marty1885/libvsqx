@@ -131,6 +131,20 @@ public:
 	int bpm;
 };
 
+class VPartStyle
+{
+public:
+	int loadInfo(tinyxml2::XMLElement *partStyleElement);
+
+	int accent;
+	int bendDep;
+	int bendLen;
+	int decay;
+	int fallPort;
+	int opening;
+	int risePort;
+};
+
 class VsqxInfo
 {
 public:
@@ -165,6 +179,8 @@ public:
 	std::string partName;
 	std::string comment;
 	VStylePlugin stylePlugin;
+	VPartStyle partStyle;
+	VVoiceInfo singer;
 
 	int loadInfo(tinyxml2::XMLElement *musicalTrackElement);
 };
@@ -217,6 +233,8 @@ public:
 	VMixer* getMixer();
 	VVoiceInfo** getVoiceInfo();
 	VMasterTrack* getMasterTrack();
+	int getTrackNum();
+	VTrack** getTrack();
 
 protected:
 	std::string *path;

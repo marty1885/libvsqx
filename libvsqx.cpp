@@ -273,6 +273,25 @@ VMixer* VsqxDoc::getMixer()
 {
 	return mixer;
 }
+
+int VsqxDoc::getTrackNum()
+{
+	return track.size();
+}
+
+VTrack** VsqxDoc::getTrack()
+{
+	static VTrack** ptr = NULL;
+	if(ptr != NULL)
+		delete [] ptr;
+	int size = track.size();
+	ptr = new VTrack*[size];
+	for(int i=0;i<size;i++)
+	{
+		ptr[i] = track[i];
+	}
+	return ptr;
+}
 ////////////////////////////////////////////////
 //VVoiceInfo
 ////////////////////////////////////////////////
@@ -684,6 +703,13 @@ int VMusicalPart::loadInfo(XMLElement *musicalTrackElement)
 	comment = musicalTrackElement->FirstChildElement("comment")->GetText();
 	
 	stylePlugin.loadInfo(musicalTrackElement->FirstChildElement("stylePlugin"));
+	
+	XMLElement *partStyleElement = musicalTrackElement->FirstChildElement("partStyle");
+	partStyle.loadInfo(partStyleElement);
+	
+	XMLElement *singerElement = musicalTrackElement->FirstChildElement("singer");
+	singer.index = atoi(singerElement->FirstChildElement("vPC")->GetText());
+	singer.language = atoi(singerElement->FirstChildElement("vBS")->GetText());
 }
 //////////////////////////////////////////////
 //VStylePlugin
@@ -701,4 +727,33 @@ int VStylePlugin::loadInfo(XMLElement *stylePluginElement)
 	stylePluginId = stylePluginElement->FirstChildElement("stylePluginID")->GetText();
 	stylePluginName = stylePluginElement->FirstChildElement("stylePluginName")->GetText();
 	version = stylePluginElement->FirstChildElement("version")->GetText();
+}
+////////////////////////////////////////////////
+//VPartStyle
+////////////////////////////////////////////////
+int VPartStyle::loadInfo(XMLElement *partStyleElement)
+{
+	XMLElement *element = partStyleElement->FirstChildElement("attr");
+	while(element != NULL)
+	{
+		int value = atoi(element->GetText());
+		string str = element->FirstAttribute()->Value();
+		//XXX: there must be a better way fo doing this
+		if(str.compare("accent") == 0)
+			accent = value;
+		else if(str.compare("bendDep") == 0)
+			bendDep = value;
+		else if(str.compare("bendLen") == 0)
+			bendLen = value;
+		else if(str.compare("decay") == 0)
+			decay = value;
+		else if(str.compare("fallPort") == 0)
+			fallPort = value;
+		else if(str.compare("opening") == 0)
+			opening = value;
+		else if(str.compare("risePort") == 0)
+			risePort = value;
+
+		element = element->NextSiblingElement("attr");
+	}
 }
