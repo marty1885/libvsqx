@@ -71,6 +71,7 @@ int main()
 	cout << "Counted " << vsqxFile.getMasterTrack()->getTimeSignatureNum() << " time signatures, "
 		<< vsqxFile.getMasterTrack()->getTempoNum() << " tempo and "
 		<< vsqxFile.getTrackNum() << " tracks." << endl;
+
 	int trackNum = vsqxFile.getTrackNum();
 	for(int i=0;i<trackNum;i++)
 		cout << "\tThere is " << vsqxFile.getTrack()[0]->musicalPart.size() << " musical Parts in track " << i << endl;

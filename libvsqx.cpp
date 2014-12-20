@@ -195,7 +195,7 @@ int VsqxDoc::load()
 		track.push_back(vsTrack);
 		vsTrackElement = vsTrackElement->NextSiblingElement("vsTrack");
 	}
-	//TODO: load track
+	//TODO: load lyric and parameter
 
 	return 1;
 }
