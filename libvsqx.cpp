@@ -148,7 +148,6 @@ int VsqxDoc::load()
 	XMLElement *karaokeUnitElement = mixerElement->FirstChildElement("karaokeUnit");
 	mixer->karaokeUnit->loadInfo(karaokeUnitElement);
 
-
 	//Load mster track
 	XMLElement *masterTrackElement = rootElement->FirstChildElement("masterTrack");
 	masterTrack->name = masterTrackElement->FirstChildElement("seqName")->GetText();
@@ -188,9 +187,12 @@ int VsqxDoc::load()
 		vsTrack->name = vsTrackElement->FirstChildElement("trackName")->GetText();
 		vsTrack->comment = vsTrackElement->FirstChildElement("comment")->GetText();
 		XMLElement *musicalPartElement = vsTrackElement->FirstChildElement("musicalPart");
-		VMusicalPart *musicalPart = new VMusicalPart;
-		vsTrack->musicalPart.push_back(musicalPart);
-		musicalPart->loadInfo(musicalPartElement);
+		if(musicalPartElement != NULL)//In some case, we don't have musicalPart.
+		{
+			VMusicalPart *musicalPart = new VMusicalPart;
+			vsTrack->musicalPart.push_back(musicalPart);
+			musicalPart->loadInfo(musicalPartElement);
+		}
 
 		track.push_back(vsTrack);
 		vsTrackElement = vsTrackElement->NextSiblingElement("vsTrack");
@@ -701,7 +703,7 @@ int VMusicalPart::loadInfo(XMLElement *musicalTrackElement)
 	playTime = atoi(musicalTrackElement->FirstChildElement("playTime")->GetText());
 	partName = musicalTrackElement->FirstChildElement("partName")->GetText();
 	comment = musicalTrackElement->FirstChildElement("comment")->GetText();
-	
+
 	stylePlugin.loadInfo(musicalTrackElement->FirstChildElement("stylePlugin"));
 	
 	XMLElement *partStyleElement = musicalTrackElement->FirstChildElement("partStyle");
@@ -710,8 +712,18 @@ int VMusicalPart::loadInfo(XMLElement *musicalTrackElement)
 	XMLElement *singerElement = musicalTrackElement->FirstChildElement("singer");
 	singer.index = atoi(singerElement->FirstChildElement("vPC")->GetText());
 	singer.language = atoi(singerElement->FirstChildElement("vBS")->GetText());
+
+	XMLElement *noteElement = musicalTrackElement->FirstChildElement("note");
+	while(noteElement != NULL)
+	{
+		VNote *notePtr = new VNote;
+		notePtr->loadInfo(noteElement);
+		note.push_back(notePtr);
+		noteElement = noteElement->NextSiblingElement("note");
+	}
 	return 1;
 }
+
 //////////////////////////////////////////////
 //VStylePlugin
 //////////////////////////////////////////////
@@ -729,6 +741,7 @@ int VStylePlugin::loadInfo(XMLElement *stylePluginElement)
 	stylePluginName = stylePluginElement->FirstChildElement("stylePluginName")->GetText();
 	version = stylePluginElement->FirstChildElement("version")->GetText();
 }
+
 ////////////////////////////////////////////////
 //VPartStyle
 ////////////////////////////////////////////////
@@ -774,6 +787,8 @@ int VNote::loadInfo(XMLElement *noteElement)
 	XMLElement *noteStyleElement = noteElement->FirstChildElement("noteStyle");
 	if(noteStyleElement != NULL)
 		noteStyle.loadInfo(noteStyleElement);
+
+	//TODO:Load vibro data
 	
 	return 1;
 }

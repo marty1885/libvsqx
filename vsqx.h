@@ -170,6 +170,24 @@ public:
 	std::string version;
 };
 
+class VNoteStyle : public VPartStyle
+{
+};
+
+class VNote
+{
+public:
+	int loadInfo(tinyxml2::XMLElement *noteElement);
+
+	int posTick;
+	int durTick;
+	int noteNum;
+	int velocity;
+	std::string lyric;
+	std::string phnms;
+	VNoteStyle noteStyle;
+};
+
 class VMusicalPart
 {
 public:
@@ -180,6 +198,7 @@ public:
 	VStylePlugin stylePlugin;
 	VPartStyle partStyle;
 	VVoiceInfo singer;
+	std::vector<VNote*> note;
 
 	int loadInfo(tinyxml2::XMLElement *musicalTrackElement);
 };
@@ -193,24 +212,6 @@ public:
 	std::vector<VMusicalPart*> musicalPart;
 
 	int loadInfo(tinyxml2::XMLElement trackElement);
-};
-
-class VNoteStyle : public VPartStyle
-{
-};
-
-class VNote
-{
-public:
-	int loadInfo(tinyxml2::XMLElement *noteElement);
-	
-	int posTick;
-	int durTick;
-	int noteNum;
-	int velocity;
-	std::string lyric;
-	std::string phnms;
-	VNoteStyle noteStyle;
 };
 
 class VMasterTrack
