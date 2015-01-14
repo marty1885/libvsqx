@@ -1,6 +1,8 @@
 #include <iostream>
-#include <string.h>
+#include <string>
+#include <sstream>
 #include <vector>
+#include <fstream>
 
 #include <tinyxml2.h>
 
@@ -16,6 +18,7 @@ class VParameterList
 public:
 	void setName(std::string str);
 	const char* getName();
+	int getSize();
 	int addParameter(int clock,int val);
 	int getParameter(int clock = 0);
 	int remove(int startClock, int endClock);
@@ -46,6 +49,7 @@ public:
 	int bypass;
 
 	int loadInfo(tinyxml2::XMLElement* vstPluginElement);
+	tinyxml2::XMLElement* createXml(tinyxml2::XMLDocument *doc);
 	VVstPlugin();
 };
 
@@ -63,6 +67,7 @@ public:
 	int vol;
 
 	int loadInfo(tinyxml2::XMLElement *vsUnitElement);
+	tinyxml2::XMLElement* createXml(tinyxml2::XMLDocument *doc);
 	VMixerUnit();
 	~VMixerUnit();
 };
@@ -90,6 +95,13 @@ public:
 	VMixer();
 	~VMixer();
 	int getVsUnitNum();
+};
+
+class VAux
+{
+public:
+		std::string auxId;
+		std::string content;
 };
 
 class VVoiceParameter
@@ -170,8 +182,21 @@ public:
 	std::string version;
 };
 
-class VNoteStyle : public VPartStyle
+class VNoteStyle
 {
+public:
+	int accent;
+	int bendDep;
+	int bendLen;
+	int decay;
+	int fallPort;
+	int opening;
+	int risePort;
+	int vibLen;
+	int vibType;
+
+	int loadInfo(tinyxml2::XMLElement* noteStyleElement);
+	tinyxml2::XMLElement* createXml(tinyxml2::XMLDocument *doc);
 };
 
 class VNote
@@ -184,8 +209,12 @@ public:
 	std::string lyric;
 	std::string phnms;
 	VNoteStyle noteStyle;
+	VParameterList vibDep;
+	VParameterList vibRate;
+	
 
 	int loadInfo(tinyxml2::XMLElement *noteElement);
+	tinyxml2::XMLElement* createXml(tinyxml2::XMLDocument* doc);
 	const char* getNoteName();
 };
 
@@ -200,8 +229,18 @@ public:
 	VPartStyle partStyle;
 	VVoiceInfo singer;
 	std::vector<VNote*> note;
+	
+	VParameterList dyn;
+	VParameterList bre;
+	VParameterList bri;
+	VParameterList cle;
+	VParameterList gen;
+	VParameterList por;
+	VParameterList pit;
+	VParameterList pbs;
 
 	int loadInfo(tinyxml2::XMLElement *musicalTrackElement);
+	tinyxml2::XMLElement* createXml(tinyxml2::XMLDocument *doc);
 };
 
 class VTrack
@@ -226,12 +265,17 @@ public:
 	int sampleReso;
 	int channels;
 	std::string filePath;
+	
+	int loadInfo(tinyxml2::XMLElement *wavPartElement);
+	tinyxml2::XMLElement* createXml(tinyxml2::XMLDocument *doc,std::string name = "track");
 };
 
 class VWavTrack
 {
 public:
-	VWavPart wavPart;
+	std::vector<VWavPart*> wavPart;
+	
+	int loadInfo(tinyxml2::XMLElement *wavTrackElemnt);
 };
 
 class VMasterTrack
@@ -262,6 +306,7 @@ public:
 	void setPath(std::string filePath);
 	bool isVsqx();
 	int load();
+	int safe(std::string  filePath = "");
 
 	int getError(char* buffer,int bufSize, bool keepMessage = false);
 	VsqxInfo* getInfo();
@@ -271,6 +316,8 @@ public:
 	VMasterTrack* getMasterTrack();
 	int getTrackNum();
 	VTrack** getTrack();
+	VAux* getAux();
+	VWavTrack** getWavTrack();
 
 protected:
 	std::string *path;
@@ -279,7 +326,9 @@ protected:
 	std::vector<VVoiceInfo*> voiceInfo;
 	VMasterTrack* masterTrack;
 	VMixer* mixer;
+	VAux aux;
 	std::vector<VTrack*> track;
+	VWavTrack *wavTrack;
 
 	void setError(const char* format,...);
 	void init();

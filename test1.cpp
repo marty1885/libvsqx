@@ -71,7 +71,7 @@ int main()
 		<< "Resolution:\t" << vsqxFile.getMasterTrack()->resolution << endl
 		<< "preMeasure:\t" << vsqxFile.getMasterTrack()->preMeasure << endl;
 
-	cout << "Counted " << vsqxFile.getMasterTrack()->getTimeSignatureNum() << " time signatures, "
+	cout << endl << "Counted " << vsqxFile.getMasterTrack()->getTimeSignatureNum() << " time signatures, "
 		<< vsqxFile.getMasterTrack()->getTempoNum() << " tempo and "
 		<< vsqxFile.getTrackNum() << " tracks." << endl;
 
@@ -82,8 +82,25 @@ int main()
 		cout << "\tThere is " << size << " musical parts in track " << i << endl;
 		for(int w=0;w < size;w++)
 			cout << "\t\tWe have " << vsqxFile.getTrack()[i]->musicalPart[w]->note.size()
-				<< " notes in track " << i << " part " << w << endl;
+				<< " notes in track " << i << " part " << w << endl
+				<< "\t\t" << vsqxFile.getTrack()[i]->musicalPart[w]->dyn.getSize() << " data in DYN" << endl
+				<< "\t\t" << vsqxFile.getTrack()[i]->musicalPart[w]->pit.getSize() << " data in PIT" << endl;
+	}
+	
+	cout << endl <<  "wavTrack Info : " << endl;
+	for(int i=0;i<2;i++)
+	{
+		cout << "\tTrack " << i << endl;
+		cout << "\t\tPartNum : " << vsqxFile.getWavTrack()[i]->wavPart.size() << endl
+		<< "\t\tPart 0 sample rate : " << vsqxFile.getWavTrack()[i]->wavPart[0]->sampleRate << endl
+		<< "\t\tPart 0 resolution : " << vsqxFile.getWavTrack()[i]->wavPart[0]->sampleReso << endl;
 	}
 
+	cout <<  endl << "AUX info :" << endl
+		<< "\tId :" << vsqxFile.getAux()->auxId.c_str() << endl
+		<< "\tData size : " << vsqxFile.getAux()->content.size() << endl;
+		
+	vsqxFile.safe("out.vsqx");
+	
 	return 1;
 }

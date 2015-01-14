@@ -24,6 +24,7 @@ VsqxDoc::~VsqxDoc()
 	delete info;
 	delete masterTrack;
 	delete mixer;
+	delete [] wavTrack;
 }
 
 void VsqxDoc::init()
@@ -34,6 +35,7 @@ void VsqxDoc::init()
 	info = new VsqxInfo;
 	masterTrack = new VMasterTrack;
 	mixer = new VMixer;
+	wavTrack = new VWavTrack[2];
 }
 
 void VsqxDoc::setPath(std::string filePath)
@@ -198,12 +200,21 @@ int VsqxDoc::load()
 			VMusicalPart *musicalPart = new VMusicalPart;
 			vsTrack->musicalPart.push_back(musicalPart);
 			musicalPart->loadInfo(musicalPartElement);
-			}
+		}
 
 		track.push_back(vsTrack);
 		vsTrackElement = vsTrackElement->NextSiblingElement("vsTrack");
 	}
-	//TODO: load lyric and parameter
+	XMLElement *seTrackElement = rootElement->FirstChildElement("seTrack");
+	wavTrack[0].loadInfo(seTrackElement);
+	
+	XMLElement *karaokeTrackElement = rootElement->FirstChildElement("karaokeTrack");
+	wavTrack[1].loadInfo(karaokeTrackElement );
+	
+	//load aux
+	XMLElement *auxElement = rootElement->FirstChildElement("aux");
+	aux.auxId = auxElement->FirstChildElement("auxID")->GetText();
+	aux.content = auxElement->FirstChildElement("content")->GetText();
 
 	return 1;
 }
@@ -223,6 +234,243 @@ VVoiceInfo** VsqxDoc::getVoiceInfo()
 	for(int i=0;i<size;i++)
 		ptr[i] = voiceInfo[i];
 	return ptr;
+}
+
+int VsqxDoc::safe(string filePath)
+{
+	string *writePath = &filePath;
+	if(filePath.length() == 0)//no text
+		writePath = path;
+	
+	 tinyxml2::XMLDocument doc;
+	
+	XMLDeclaration* decl = doc.NewDeclaration("xml version=\"1.0\" encoding=\"UTF-8\"  standalone=\"no\"");  
+	doc.LinkEndChild(decl);
+	//HACK: A hack since tinyxml does not support schema, another hack down there is required
+	XMLElement *rootElement = doc.NewElement("vsq3 xmlns=\"http://www.yamaha.co.jp/vocaloid/schema/vsq3/\"\n\
+	xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n\
+	xsi:schemaLocation=\"http://www.yamaha.co.jp/vocaloid/schema/vsq3/ vsq3.xsd\"");
+	doc.InsertEndChild(rootElement);
+
+	XMLElement *venderElementy = doc.NewElement("vender");
+	rootElement->InsertEndChild(venderElementy);
+	XMLText* venderText = doc.NewText(info->getVender());
+	venderText->SetCData(true);
+	venderElementy->InsertEndChild(venderText);
+	XMLElement *versionElement = doc.NewElement("version");
+	rootElement->InsertEndChild(versionElement);
+	XMLText *versionText = doc.NewText(info->getVersion());
+	versionText->SetCData(true);
+	versionElement->InsertEndChild(versionText);
+	
+	XMLElement *voiceTableElement = doc.NewElement("vVoiceTable");
+	rootElement->InsertEndChild(voiceTableElement);
+	int size = 0;
+	size = getVoiceInfoNum();
+	for(int i=0;i<size;i++)
+	{
+		VVoiceInfo *voiceInfomation = voiceInfo[i];
+		XMLElement *voiceElement = doc.NewElement("vVoice");
+		XMLElement *vBsElement = doc.NewElement("vBS");
+		vBsElement->SetText(voiceInfomation->language);
+		voiceElement->InsertEndChild(vBsElement);
+		XMLElement *vPcElement = doc.NewElement("vPC");
+		vPcElement->SetText(voiceInfomation->index);
+		voiceElement->InsertEndChild(vPcElement);
+		XMLElement *compIdElement = doc.NewElement("compID");
+		XMLText *compIdText = doc.NewText(voiceInfomation->compId.c_str());
+		compIdElement->InsertEndChild(compIdText);
+		compIdText->SetCData(true);
+		voiceElement->InsertEndChild(compIdElement);
+		XMLElement *nameElement = doc.NewElement("vVoiceName");
+		XMLText *nameText = doc.NewText(voiceInfomation->voiceName.c_str());
+		nameText->SetCData(true);
+		nameElement->InsertEndChild(nameText);
+		voiceElement->InsertEndChild(nameElement);
+
+		VVoiceParameter  *para = &voiceInfomation->voiceParameter;
+		XMLElement *voiceParamElement = doc.NewElement("vVoiceParam");
+		XMLElement *breElement = doc.NewElement("bre");
+		breElement->SetText(para->bre);
+		voiceParamElement->InsertEndChild(breElement);
+		XMLElement *briElement = doc.NewElement("bri");
+		briElement->SetText(para->bri);
+		voiceParamElement->InsertEndChild(briElement);
+		XMLElement *cleElement = doc.NewElement("cle");
+		cleElement->SetText(para->cle);
+		voiceParamElement->InsertEndChild(cleElement);
+		XMLElement *genElement = doc.NewElement("gen");
+		genElement->SetText(para->gen);
+		voiceParamElement->InsertEndChild(genElement);
+		XMLElement *opeElement = doc.NewElement("ope");
+		opeElement->SetText(para->ope);
+		voiceParamElement->InsertEndChild(opeElement);
+		
+		voiceElement->InsertEndChild(voiceParamElement);
+		
+		voiceTableElement->InsertEndChild(voiceElement);
+	}
+
+	XMLElement *mixerElement = doc.NewElement("mixer");
+	rootElement->InsertEndChild(mixerElement);
+	XMLElement *masterUnitElement = doc.NewElement("masterUnit");
+	mixerElement->InsertEndChild(masterUnitElement);
+	XMLElement *outDevElement = doc.NewElement("outDev");
+	masterUnitElement->InsertEndChild(outDevElement);
+	outDevElement->SetText(mixer->masterUnit.outDev);
+	
+	for(int i=0;i<2;i++)
+	{
+		XMLElement *vstPluginElement = mixer->masterUnit.vstPlugin[i].createXml(&doc);
+		masterUnitElement->InsertEndChild(vstPluginElement);
+	}
+
+	XMLElement *vstPluginSrElement = mixer->masterUnit.vstPlugin[2].createXml(&doc);
+	vstPluginSrElement->SetName("vstPluginSR");
+	masterUnitElement->InsertEndChild(vstPluginSrElement);
+	
+	XMLElement *retLevelElement = doc.NewElement("retLevel");
+	retLevelElement->DeleteChild(retLevelElement->FirstChildElement("vsTrackNo"));
+	retLevelElement->SetText(mixer->masterUnit.retLevel);
+	masterUnitElement->InsertEndChild(retLevelElement);
+
+	XMLElement *volElement = doc.NewElement("vol");
+	volElement->SetText(mixer->masterUnit.vol);
+	masterUnitElement->InsertEndChild(volElement);
+
+	size = mixer->vsUnit.size();
+	for(int i=0;i<size;i++)
+	{
+		XMLElement *vsUnitElement = mixer->vsUnit[i]->createXml(&doc);
+		mixerElement->InsertEndChild(vsUnitElement);
+	}
+
+	XMLElement* seUnitElement = mixer->seUnit->createXml(&doc);
+	seUnitElement->DeleteChild(seUnitElement->FirstChildElement("vsTrackNo"));
+	seUnitElement->SetName("seUnit");
+	mixerElement->InsertEndChild(seUnitElement);
+
+	XMLElement *karaokeUnitElement = mixer->karaokeUnit->createXml(&doc);
+	seUnitElement->DeleteChild(karaokeUnitElement->FirstChildElement("vsTrackNo"));
+	seUnitElement->DeleteChild(karaokeUnitElement->FirstChildElement("sendLevel"));
+	seUnitElement->DeleteChild(karaokeUnitElement->FirstChildElement("sendEnable"));
+	seUnitElement->DeleteChild(karaokeUnitElement->FirstChildElement("pan"));
+	karaokeUnitElement->SetName("karaokeUnit");
+	mixerElement->InsertEndChild(karaokeUnitElement);
+
+	XMLElement *masterTrackElement = doc.NewElement("masterTrack");
+	rootElement->InsertEndChild(masterTrackElement);
+	XMLElement *seqNameElement = doc.NewElement("seqName");
+	masterTrackElement->InsertEndChild(seqNameElement);
+	XMLText *seqNameText = doc.NewText(masterTrack->name.c_str());
+	seqNameElement->InsertEndChild(seqNameText);
+	seqNameText->SetCData(true);
+
+	XMLElement *commentElement = doc.NewElement("comment");
+	masterTrackElement->InsertEndChild(commentElement);
+	XMLText *commentText = doc.NewText(masterTrack->comment.c_str());
+	commentElement->InsertEndChild(commentText);
+	commentText->SetCData(true);
+
+	XMLElement *resolutionElement = doc.NewElement("resolution");
+	resolutionElement->SetText(masterTrack->resolution);
+	masterTrackElement->InsertEndChild(resolutionElement);
+
+	XMLElement *preMeasureElement = doc.NewElement("preMeasure");
+	preMeasureElement->SetText(masterTrack->preMeasure);
+	masterTrackElement->InsertEndChild(preMeasureElement);
+
+	size = masterTrack->getTimeSignatureNum();
+	for(int i=0;i<size;i++)
+	{
+		XMLElement *timeSigElement = doc.NewElement("timeSig");
+		masterTrackElement->InsertEndChild(timeSigElement);
+		XMLElement *posMesElement = doc.NewElement("posMes");
+		timeSigElement->InsertEndChild(posMesElement);
+		posMesElement->SetText(masterTrack->timeSignature[i]->posMes);
+		XMLElement *numeElement = doc.NewElement("nume");
+		timeSigElement->InsertEndChild(numeElement);
+		numeElement->SetText(masterTrack->timeSignature[i]->nume);
+		XMLElement *denomiElement = doc.NewElement("denomi");
+		timeSigElement->InsertEndChild(denomiElement);
+		denomiElement->SetText(masterTrack->timeSignature[i]->denomi);
+		//TODO:add timeSig write3
+	}
+
+	for(int i=0;i<size;i++)
+	{
+		XMLElement *tempoElement = doc.NewElement("tempo");
+		masterTrackElement->InsertEndChild(tempoElement);
+		XMLElement *posTickElement = doc.NewElement("posTick");
+		tempoElement->InsertEndChild(posTickElement);
+		posTickElement->SetText(masterTrack->tempo[i]->posTick);
+		XMLElement *bpmElement = doc.NewElement("bpm");
+		tempoElement->InsertEndChild(bpmElement);
+		bpmElement->SetText(masterTrack->tempo[i]->bpm);
+	}
+
+	size = track.size();
+	for(int i=0;i<size;i++)
+	{
+		XMLElement *vsTrackElement = doc.NewElement("vsTrack");
+		rootElement->InsertEndChild(vsTrackElement);
+		XMLElement *vsTrackNoElement = doc.NewElement("vsTrackNo");
+		vsTrackElement->InsertEndChild(vsTrackNoElement);
+		vsTrackNoElement->SetText(track[i]->trackNo);
+
+		XMLElement *trackNameElement = doc.NewElement("trackName");
+		vsTrackElement->InsertEndChild(trackNameElement);
+		XMLText *trackNameText = doc.NewText(track[i]->name.c_str());
+		trackNameElement->InsertEndChild(trackNameText);
+		trackNameText->SetCData(true);
+		int musicalPartNum = track[i]->musicalPart.size();
+
+		XMLElement *commentElement = doc.NewElement("comment");
+		vsTrackElement->InsertEndChild(commentElement);
+		XMLText *commentText = doc.NewText(track[i]->comment.c_str());
+		commentElement->InsertEndChild(commentText);
+		commentText->SetCData(true);
+
+		for(int w=0;w<musicalPartNum;w++)
+		{
+			XMLElement *musicalPartElement = track[i]->musicalPart[w]->createXml(&doc);
+			vsTrackElement->InsertEndChild(musicalPartElement);
+		}
+	}
+
+	XMLElement *seTrackElement = wavTrack[0].createXml(&doc);
+	rootElement->InsertEndChild(seTrackElement,"seTrack");
+
+
+	//TODO: write more thing
+
+	//doc.Print();
+	//doc.SaveFile(writePath->c_str());
+
+	//HACK: to remove scrap from the end
+	//XXX: TRY ANYEAY TO REMVOE THIS hack, IT'S SLOW AND NASTY
+	XMLPrinter printer;
+	doc.Print(&printer);
+
+	string file(printer.CStr());
+	const char *str1= file.c_str();
+	char *processStr = new char[file.size()+10];
+	size = file.size();
+	strcpy(processStr,str1);
+	for(int i=size;i>=0;i--)
+	{
+		if(processStr[i] == '<')
+		{
+			strcpy(&processStr[i],"</vsq3>");
+			break;
+		}
+		else
+			processStr[i] = '\0';
+	}
+	FILE *out = fopen(writePath->c_str(),"w+");
+	fprintf(out,"%s\n",processStr);
+	//printf("%s\n",processStr);
+	fclose(out);
 }
 
 
@@ -298,6 +546,11 @@ VTrack** VsqxDoc::getTrack()
 		ptr[i] = track[i];
 	return ptr;
 }
+VAux* VsqxDoc::getAux()
+{
+	return &aux;
+}
+
 ////////////////////////////////////////////////
 //VVoiceInfo
 ////////////////////////////////////////////////
@@ -320,7 +573,7 @@ const char* VVoiceInfo::getLanguageString()
 		return "EN";
 		break;
 
-	case 3:
+	case 4:
 		return "CH";
 		break;
 	}
@@ -485,6 +738,10 @@ const char* VParameterList::getName()
 	return name.c_str();
 }
 
+int VParameterList::getSize()
+{
+	return value.size();
+}
 int VParameterList::addParameter(int clock, int val)
 {
 	int size = value.size();
@@ -625,7 +882,60 @@ int VVstPlugin::loadInfo(XMLElement* vstPluginElement)
 	return 1;
 }
 
-
+XMLElement* VVstPlugin::createXml(XMLDocument *doc)
+{
+	VVstPlugin *vst = this;
+		
+	
+	XMLElement *vstPluginElement = doc->NewElement("vstPlugin");
+		
+	XMLElement *vstPluginIdElement = doc->NewElement("vstPluginID");
+	XMLText *vstPluginIdText = doc->NewText(vst->id.c_str());
+	vstPluginIdText->SetCData(true);
+	vstPluginIdElement->InsertEndChild(vstPluginIdText);
+	vstPluginElement->InsertEndChild(vstPluginIdElement);
+		
+	XMLElement *vstPluginNameElement = doc->NewElement("vstPluginName");
+	XMLText *vstPluginNameText = doc->NewText(vst->name.c_str());
+	vstPluginNameText->SetCData(true);
+	vstPluginNameElement->InsertEndChild(vstPluginNameText);
+	vstPluginElement->InsertEndChild(vstPluginNameElement);
+	vstPluginNameElement->SetText(vst->name.c_str());
+		
+	XMLElement *vstSdkVersionElement = doc->NewElement("vstSDKVersion");
+	vstPluginElement->InsertEndChild(vstSdkVersionElement);
+	vstSdkVersionElement->SetText(vst->sdkVersion);
+		
+	int paraNum = vst->parameterNum;
+	XMLElement *vstParamNumElement = doc->NewElement("vstParamNum");
+	vstPluginElement->InsertEndChild(vstParamNumElement);
+	vstParamNumElement->SetText(paraNum);
+	if(paraNum != 0)
+	{
+		XMLElement *vstParamValElement = doc->NewElement("vstParamVal");
+		vstPluginElement->InsertEndChild(vstParamValElement);
+		for(int w=0;w<paraNum;w++)
+		{
+			XMLElement *valElement = doc->NewElement("val");
+			valElement->SetText(vst->value[w]);
+			vstParamValElement->InsertEndChild(valElement);
+		}
+	}
+	
+	XMLElement *vstPresetNoElement = doc->NewElement("vstPresetNo");
+	vstPluginElement->InsertEndChild(vstPresetNoElement);
+	vstPresetNoElement->SetText(vst->presetNum);
+	
+	XMLElement *enableElement = doc->NewElement("enable");
+	vstPluginElement->InsertEndChild(enableElement);
+	enableElement->SetText(vst->enable);
+		
+	XMLElement *bypassElement = doc->NewElement("bypass");
+	vstPluginElement->InsertEndChild(bypassElement);
+	bypassElement->SetText(vst->bypass);
+	
+	return vstPluginElement;
+}
 /////////////////////////////////////////////
 //VMixer
 ////////////////////////////////////////////
@@ -701,6 +1011,51 @@ int VMixerUnit::loadInfo(XMLElement *vsUnitElement)
 	return 1;
 }
 
+XMLElement* VMixerUnit::createXml(XMLDocument *doc) 
+{
+	XMLElement *vsUnitElement = doc->NewElement("vsUnit");
+	
+	XMLElement *trackNoElement = doc->NewElement("vsTrackNo");
+	vsUnitElement->InsertEndChild(trackNoElement);
+	trackNoElement->SetText(trackNo);
+	
+	XMLElement *inGainElement = doc->NewElement("inGain");
+	vsUnitElement->InsertEndChild(inGainElement);
+	inGainElement->SetText(inGain);
+		
+	for(int w=0;w<2;w++)
+	{
+		XMLElement *vstPluginElement = vstPlugin[w].createXml(doc);
+		vsUnitElement->InsertEndChild(vstPluginElement);
+	}
+		
+	XMLElement *sendLevelElement = doc->NewElement("sendLevel");
+	sendLevelElement->SetText(sendLevel);
+	vsUnitElement->InsertEndChild(sendLevelElement);
+		
+	XMLElement *sendEnableElement = doc->NewElement("sendEnable");
+	sendEnableElement->SetText(sendEnable);
+	vsUnitElement->InsertEndChild(sendEnableElement);
+	
+	XMLElement *muteElement = doc->NewElement("mute");
+	muteElement->SetText(mute);
+	vsUnitElement->InsertEndChild(muteElement);
+	
+	XMLElement *soloElement = doc->NewElement("solo");
+	soloElement->SetText(solo);
+	vsUnitElement->InsertEndChild(soloElement);
+	
+	XMLElement *panElement = doc->NewElement("pan");
+	panElement->SetText(pan);
+	vsUnitElement->InsertEndChild(panElement);
+		
+	XMLElement *volElement = doc->NewElement("vol");
+	volElement->SetText(vol);
+	vsUnitElement->InsertEndChild(volElement);
+		
+	return vsUnitElement;
+}
+
 //////////////////////////////////////////////
 //VMusicalPart
 /////////////////bo/////////////////////////////
@@ -719,6 +1074,31 @@ int VMusicalPart::loadInfo(XMLElement *musicalTrackElement)
 	XMLElement *singerElement = musicalTrackElement->FirstChildElement("singer");
 	singer.index = atoi(singerElement->FirstChildElement("vPC")->GetText());
 	singer.language = atoi(singerElement->FirstChildElement("vBS")->GetText());
+	
+	XMLElement *ctrlElement = musicalTrackElement->FirstChildElement("mCtrl");
+	char paraName[][10] = {"DYN","BRE","BRI","CLE","GEN","POR","PIT","PBS"};
+	VParameterList* paraList[] = {&dyn,&bre,&bri,&cle,&gen,&por,&pit,&pbs};
+	while(ctrlElement != NULL)
+	{
+		XMLElement *attrElement = ctrlElement->FirstChildElement("attr");
+		string str(attrElement->FirstAttribute()->Value());
+		int index = -1;
+		for(int i=0;i<8;i++)
+			if(str.compare(paraName[i]) == 0)
+			{
+				index = i;
+				break;
+			}
+		if(index == -1)//found a unknown parameter
+		{
+			printf("Found unknown parameter %s\n",str.c_str());
+			continue;
+		}
+		VParameterList *para = paraList[index];
+		para->addParameter(atoi(ctrlElement->FirstChildElement("posTick")->GetText())
+				,atoi(attrElement->GetText()));
+		ctrlElement = ctrlElement->NextSiblingElement("mCtrl");
+	}
 
 	XMLElement *noteElement = musicalTrackElement->FirstChildElement("note");
 	while(noteElement != NULL)
@@ -728,8 +1108,143 @@ int VMusicalPart::loadInfo(XMLElement *musicalTrackElement)
 		note.push_back(notePtr);
 		noteElement = noteElement->NextSiblingElement("note");
 	}
-	//TODO: load parameters
 	return 1;
+}
+
+XMLElement* VMusicalPart::createXml(XMLDocument *doc)
+{
+	XMLElement *musicalPartElement = doc->NewElement("musicalPart");
+
+	XMLElement *posTickElement = doc->NewElement("posTick");
+	musicalPartElement->InsertEndChild(posTickElement);
+	posTickElement->SetText(posTick);
+
+	XMLElement *playTimeElement = doc->NewElement("playTime");
+	musicalPartElement->InsertEndChild(playTimeElement);
+	playTimeElement->SetText(playTime);
+
+	XMLElement *partNameElement = doc->NewElement("partName");
+	musicalPartElement->InsertEndChild(partNameElement);
+	XMLText *partNameText = doc->NewText(partName.c_str());
+	partNameElement->InsertEndChild(partNameText);
+	partNameText->SetCData(true);
+
+	XMLElement *commentElement = doc->NewElement("comment");
+	musicalPartElement->InsertEndChild(commentElement);
+	XMLText *commentText = doc->NewText(comment.c_str());
+	commentElement->InsertEndChild(commentText);
+	commentText->SetCData(true);
+
+	XMLElement *stylePluginElement = doc->NewElement("stylePlugin");
+	musicalPartElement->InsertEndChild(stylePluginElement);
+
+	XMLElement *stylePluginIdElement = doc->NewElement("stylePluginID");
+	stylePluginElement->InsertEndChild(stylePluginIdElement);
+	XMLText *stylePluginIdText = doc->NewText(stylePlugin.stylePluginId.c_str());
+	stylePluginIdText->SetCData(true);
+	stylePluginIdElement->InsertEndChild(stylePluginIdText);
+
+	XMLElement *stylePluginNameElement = doc->NewElement("stylePluginName");
+	stylePluginElement->InsertEndChild(stylePluginNameElement);
+	XMLText *stylePluginNameText = doc->NewText(stylePlugin.stylePluginName.c_str());
+	stylePluginNameText->SetCData(true);
+	stylePluginNameElement->InsertEndChild(stylePluginNameText);
+
+	XMLElement *versionElement = doc->NewElement("version");
+	stylePluginElement->InsertEndChild(versionElement);
+	XMLText *versionText = doc->NewText(stylePlugin.version.c_str());
+	versionText->SetCData(true);
+	versionElement->InsertEndChild(versionText);
+
+	XMLElement *partStyleElement = doc->NewElement("partStyle");
+	musicalPartElement->InsertEndChild(partStyleElement);
+
+	static const char idList[][10] = {"accent","bendDep","bendLen","decay","fallPort","opening","risePort"};
+	const int valueList[] = {partStyle.accent,partStyle.bendDep,partStyle.bendLen,partStyle.decay,partStyle.fallPort,
+		partStyle.opening,partStyle.risePort};
+
+	for(int i=0;i<7;i++)
+	{
+		XMLElement *attrElement = doc->NewElement("attr");
+		partStyleElement->InsertEndChild(attrElement);
+		attrElement->SetAttribute("id",idList[i]);
+		attrElement->SetText(valueList[i]);
+	}
+
+	XMLElement *singerElement = doc->NewElement("singer");
+	musicalPartElement->InsertEndChild(singerElement);
+
+	posTickElement = doc->NewElement("posTick");
+	singerElement->InsertEndChild(posTickElement);
+	posTickElement->SetText("0");
+
+	XMLElement *vBsElement = doc->NewElement("vBS");
+	singerElement->InsertEndChild(vBsElement);
+	vBsElement->SetText(singer.language);
+
+	XMLElement *vPcElement = doc->NewElement("vPC");
+	singerElement->InsertEndChild(vPcElement);
+	vPcElement->SetText(singer.index);
+
+	VParameterList *paraList[] = {&dyn,&bre,&bri,&cle,&gen,&por,&pit,&pbs};
+	char paraIdList[][4] = {"DYN","BRE","BRI","CLE","GEN","POR","PIT","PBS"};
+
+	int size = sizeof(paraList)/sizeof(VParameterList*);
+	for(int i=0;i<size;i++)
+	{
+		int length = paraList[i]->getSize();
+		for(int w=0;w<length;w++)
+		{
+			VParameter *para = paraList[i]->value[w];
+			XMLElement *ctrlElement = doc->NewElement("mCtrl");
+			musicalPartElement->InsertEndChild(ctrlElement);
+			XMLElement *posTickElement = doc->NewElement("posTick");
+			posTickElement->SetText(para->clock);
+			ctrlElement->InsertEndChild(posTickElement);
+
+			XMLElement *attrElement = doc->NewElement("attr");
+			attrElement->SetAttribute("id",paraIdList[i]);
+			attrElement->SetText(para->value);
+			ctrlElement->InsertEndChild(attrElement);
+		}
+	}
+
+	size = note.size();
+	for(int i=0;i<size;i++)
+	{
+		XMLElement *noteElement = note[i]->createXml(doc);
+		musicalPartElement->InsertEndChild(noteElement);
+	}
+
+	return musicalPartElement;
+}
+
+/////////////////////////////////////////
+//VWavTrack
+/////////////////////////////////////////
+
+XMLElement* VWavTrack::createXml(XMLDocument *doc, string name)
+{
+	XMLElement *trackElement = doc->NewElement(name.c_str());
+	XMLElement *wavPartElement = doc->NewElement("wavPart");
+	trackElement->InsertEndChild(wavPartElement);
+	//TODO:wirte something
+
+	return trackElement;
+}
+
+VWavTrack** VsqxDoc::getWavTrack()
+{
+	static VWavTrack **ptr = NULL;
+	//The won't update. it's fine to do this
+	if(ptr == NULL)
+	{
+		ptr = new VWavTrack*[2];
+		ptr[0] = &wavTrack[0];
+		ptr[1] = &wavTrack[1];
+	}
+	
+	return ptr;
 }
 
 //////////////////////////////////////////////
@@ -782,6 +1297,36 @@ int VPartStyle::loadInfo(XMLElement *partStyleElement)
 	}
 }
 
+/////////////////////////////////////////////////
+//VNoteStyle
+/////////////////////////////////////////////////
+
+int VNoteStyle::loadInfo(XMLElement *noteStyleElement)
+{
+	static const char idNameList[][15] = {"accent","bendDep","bendLen","decay","fallPort","opening","risePort","vibLen",
+		"vibType"};
+	int *paraList[] = {&accent,&bendDep,&bendLen,&decay,&fallPort,&opening,&risePort,&vibLen,&vibType};
+
+	XMLElement *attrElement = noteStyleElement->FirstChildElement("attr");
+	while(attrElement != NULL)
+	{
+		string str = attrElement->FirstAttribute()->Value();
+		int size = sizeof(paraList)/sizeof(int*);
+		int index = 0;
+		for(int i=0;i<size;i++)
+		{
+			if(str.compare(idNameList[i]) == 0)
+			{
+				index = i;
+				break;
+			}
+		}
+		*paraList[index] = atoi(attrElement->GetText());
+		attrElement = attrElement->NextSiblingElement("attr");
+	}
+	return 1;
+}
+
 //////////////////////////////////////////////////
 //VNote
 //////////////////////////////////////////////////
@@ -798,13 +1343,124 @@ int VNote::loadInfo(XMLElement *noteElement)
 	if(noteStyleElement != NULL)
 		noteStyle.loadInfo(noteStyleElement);
 
-	//TODO:Load vibro data
+	XMLElement *seqAttrElement = noteStyleElement->FirstChildElement("seqAttr");
+	while(seqAttrElement != NULL)
+	{
+		string str(seqAttrElement->FirstAttribute()->Value());
+		XMLElement *elemElement = seqAttrElement->FirstChildElement("elem");
+		VParameterList *para = NULL;
+		if(str.compare("vibDep") == 0)
+			para = &vibDep;
+		else if(str.compare("vibRate") == 0)
+			para = &vibRate;
+		para->setName(str.c_str());
+		while(elemElement != NULL && para != NULL)
+		{
+			int clock = atoi(elemElement->FirstChildElement("posNrm")->GetText());
+			int elv = atoi(elemElement->FirstChildElement("elv")->GetText());//Why they name it elv?
+			para->addParameter(clock,elv);
+			elemElement = elemElement->NextSiblingElement("elem");
+		}
+		seqAttrElement = seqAttrElement->NextSiblingElement("seqAttr");
+	}
 	return 1;
+}
+
+XMLElement* VNote::createXml(XMLDocument* doc)
+{
+	XMLElement *noteElement = doc->NewElement("note");
+
+	XMLElement *posTickElement = doc->NewElement("posTick");
+	noteElement->InsertEndChild(posTickElement);
+	posTickElement->SetText(posTick);
+
+	XMLElement *durTickElement = doc->NewElement("durTick");
+	noteElement->InsertEndChild(durTickElement);
+	durTickElement->SetText(durTick);
+
+	XMLElement *noteNumElement = doc->NewElement("noteNum");
+	noteElement->InsertEndChild(noteNumElement);
+	noteNumElement->SetText(noteNum);
+
+	XMLElement *velocityElement = doc->NewElement("velocity");
+	noteElement->InsertEndChild(velocityElement);
+	velocityElement->SetText(velocity);
+
+	XMLElement *lyricElement = doc->NewElement("lyric");
+	noteElement->InsertEndChild(lyricElement);
+	XMLText *lyricText = doc->NewText(lyric.c_str());
+	lyricElement->InsertEndChild(lyricText);
+	lyricText->SetCData(true);
+
+	XMLElement *phnmsElement = doc->NewElement("phnms");
+	noteElement->InsertEndChild(phnmsElement);
+	XMLText *phnmsText = doc->NewText(phnms.c_str());
+	phnmsElement->InsertEndChild(phnmsText);
+	phnmsText->SetCData(true);
+
+	XMLElement *noteStyleElement = doc->NewElement("noteStyle");
+	noteElement->InsertEndChild(noteStyleElement);
+	static const char idNameList[][15] = {"accent","bendDep","bendLen","decay","fallPort","opening","risePort","vibLen",
+		"vibType"};
+	int paraList[] = {noteStyle.accent,noteStyle.bendDep,noteStyle.bendLen,noteStyle.decay,noteStyle.fallPort
+		,noteStyle.opening,noteStyle.risePort,noteStyle.vibLen,noteStyle.vibType};
+	int size = sizeof(paraList)/sizeof(int);
+	for(int i=0;i<size;i++)
+	{
+		XMLElement *attrElement = doc->NewElement("attr");
+		noteStyleElement->InsertEndChild(attrElement);
+		attrElement->SetAttribute("id",idNameList[i]);
+		attrElement->SetText(paraList[i]);
+	}
+
+	size = vibDep.getSize();
+	if(size != 0)
+	{
+		XMLElement *seqAttrElement = doc->NewElement("seqAttr");
+		noteStyleElement->InsertEndChild(seqAttrElement);
+		seqAttrElement->SetAttribute("id","vibDep");
+		for(int i=0;i<size;i++)
+		{
+			XMLElement *elemElement = doc->NewElement("elem");
+			seqAttrElement->InsertEndChild(elemElement);
+
+			XMLElement *posNrmElement = doc->NewElement("posNrm");
+			elemElement->InsertEndChild(posNrmElement);
+			posNrmElement->SetText(vibDep.value[i]->clock);
+
+			XMLElement *elvElement = doc->NewElement("elv");
+			elemElement->InsertEndChild(elvElement);
+			elvElement->SetText(vibDep.value[i]->value);
+		}
+	}
+
+	size = vibRate.getSize();
+	if(size != 0)
+	{
+		XMLElement *seqAttrElement = doc->NewElement("seqAttr");
+		noteStyleElement->InsertEndChild(seqAttrElement);
+		seqAttrElement->SetAttribute("id","vibRate");
+		for(int i=0;i<size;i++)
+		{
+			XMLElement *elemElement = doc->NewElement("elem");
+			seqAttrElement->InsertEndChild(elemElement);
+
+			XMLElement *posNrmElement = doc->NewElement("posNrm");
+			elemElement->InsertEndChild(posNrmElement);
+			posNrmElement->SetText(vibRate.value[i]->clock);
+
+			XMLElement *elvElement = doc->NewElement("elv");
+			elemElement->InsertEndChild(elvElement);
+			elvElement->SetText(vibRate.value[i]->value);
+		}
+	}
+
+	return noteElement;
 }
 
 const char* VNote::getNoteName()
 {
-	const char noteName[][5]={"C","C#","D","Eb","E","F","F#","G","G#","A","Bb","B"};
+	static const char noteName[][5]={"C","C#","D","Eb","E","F","F#","G","G#","A","Bb","B"};
 	int index = noteNum % 12;
 	int level = noteNum/12 - 2;
 	static char *str = NULL;
@@ -815,4 +1471,33 @@ const char* VNote::getNoteName()
 	sprintf(str,"%s%d",noteName[index],level);
 
 	return (const char*)str;
+}
+/////////////////////////////////////////////////
+//VWavPart
+/////////////////////////////////////////////////
+int VWavTrack::loadInfo(XMLElement *wavTrackElement)
+{
+	XMLElement *wavPartElement = wavTrackElement->FirstChildElement("wavPart");
+	while(wavPartElement != NULL)
+	{
+		VWavPart *part = new VWavPart;
+		wavPart.push_back(part);
+		part->loadInfo(wavPartElement);
+		
+		wavPartElement = wavPartElement->NextSiblingElement("wavPart");
+	}
+}
+/////////////////////////////////////////////////
+//VWavPart
+/////////////////////////////////////////////////
+int VWavPart::loadInfo(XMLElement *wavPartElement)
+{
+	posTick = atoi(wavPartElement->FirstChildElement("posTick")->GetText());
+	playTime = atoi(wavPartElement->FirstChildElement("playTime")->GetText());
+	partName = wavPartElement->FirstChildElement("partName")->GetText();
+	comment = wavPartElement->FirstChildElement("comment")->GetText();
+	sampleRate = atoi(wavPartElement->FirstChildElement("sampleRate")->GetText());
+	sampleReso = atoi(wavPartElement->FirstChildElement("sampleReso")->GetText());
+	channels =  atoi(wavPartElement->FirstChildElement("channels")->GetText());
+	filePath = wavPartElement->FirstChildElement("filePath")->GetText();
 }
