@@ -195,11 +195,13 @@ int VsqxDoc::load()
 		vsTrack->name = vsTrackElement->FirstChildElement("trackName")->GetText();
 		vsTrack->comment = vsTrackElement->FirstChildElement("comment")->GetText();
 		XMLElement *musicalPartElement = vsTrackElement->FirstChildElement("musicalPart");
-		if(musicalPartElement != NULL)//In some case, we don't have musicalPart.
+		while(musicalPartElement != NULL)//In some case, we don't have musicalPart.
 		{
 			VMusicalPart *musicalPart = new VMusicalPart;
 			vsTrack->musicalPart.push_back(musicalPart);
 			musicalPart->loadInfo(musicalPartElement);
+			
+			musicalPartElement = musicalPartElement->NextSiblingElement("musicalPart");
 		}
 
 		track.push_back(vsTrack);
